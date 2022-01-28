@@ -32,10 +32,13 @@ public class MLMain : MonoBehaviour
     // creating the linear activation func 
     private ML.Activation linear = new Activation( linearFunc,linearDeriv,"linear");
     // creating the softmax activation func 
-    private ML.Activation softmax = new Activation( softmaxFunc,softmaxDeriv,"softmax");
+    //private ML.Function<Vector,Vector> softmax = new Function<Vector,Vector>( softmaxFunc,softmaxDeriv,"softmax");
     // creating the mse loss
     private ML.Loss mse = new Loss( mseFunc,mseDeriv,"mse");
-
+    // creating the Categorical crossEntropy loss
+    private ML.Loss CE = new Loss( CEFunc,CEDeriv,"categorical crossentropy");
+    // creating the Binary Catergorical crossEntropy loss
+    private ML.Loss BCE = new Loss( BCCEFunc,BCCEDeriv,"binary categorical crossentropy");
     private Network net;
     
     
@@ -45,79 +48,41 @@ public class MLMain : MonoBehaviour
         Layer[] layers=
         {
             
-            new ML.DenseLayer(4,linear,"d1"),
-            new ML.DenseLayer(2,softmax,"output")
-        };
+            new DenseLayer(3,relu,"d1"),
+            new DenseLayer(4,relu,"d2"),
+            new DenseLayer(1,linear,"output")};
         net = new Network(layers,lr,1,mse);
         x = (float)rand.NextDouble() * 10;
     }
 
-    private static Tensor reluFunc(Tensor x)
+    private static float reluFunc(float x)
     {
-        return new Scalar(Math.Max(x.Data, 0));
+        return Math.Max(x, 0);
     }
 
-    private static Tensor sigFunc(Tensor x)
+    private static float sigFunc(float x)
     {
-        return new Scalar( 1.0f / (float)(1 + Math.Exp(-x.Data)));
+        return  1.0f / (float)(1 + Math.Exp(-x));
     }
-    private static Tensor sigDeriv(Tensor x)
+    private static float sigDeriv(float x)
     {
-        return new Scalar(sigFunc(x).Data * (1-sigFunc(x).Data));
+        return sigFunc(x) * (1-sigFunc(x));
     }
 
-    private static Tensor reluDeriv(Tensor x)
+    private static float reluDeriv(float x)
     {
-        return new Scalar(Math.Max(x.Data, 0)/Math.Abs(x.Data));
+        return Math.Max(x, 0)/Math.Abs(x);
     }
-    private static Tensor linearFunc(Tensor x)
+    private static float linearFunc(float x)
     {
         return x;
     }
 
-    private static Tensor linearDeriv(Tensor x)
+    private static float linearDeriv(float x)
     {
-        return new Scalar(1);
-    }
-
-    private static Tensor softmaxFunc(Tensor x) 
-    {
-        // initializing a new vector with the length of x.
-        Vector ret = new Vector(x.Length);
-        // every element is e to the power of the elements devided by the sum of e to the poewr of all the elements.
-        // implementation from https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
-        float sum = 0;
-        // finding the max value in x
-        float max = 0;
-        for (int i = 0; i < ret.Length; i++)
-            if (x[i] > max)
-                max = x[i];
-        for (int i = 0; i < ret.Length; i++)
-        {   
-            // x = e^x
-            ret[i] = (float)Math.Exp(x[i]-max);
-            // adding to the sum
-            sum += ret[i];
-        }
-        // deviding by the sum
-        for (int i = 0; i < ret.Length; i++)
-        {
-            ret[i] /= sum;
-        }
-        return ret;
-    }
-    // softmax deriv from https://towardsdatascience.com/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1
-    private static Tensor softmaxDeriv(Tensor x)
-    {
-        Vector ret =(Vector) softmaxFunc(x);
-        for (int i = 0; i < x.Length; i++)
-        {
-            ret[i] = ret[i] * (1 - ret[i]);
-        }
-        return ret;
+        return 1;
     }
     
-
     private static Tensor mseFunc((Tensor x, Tensor y) input)
     {
         // x,y need to have the same length
@@ -143,6 +108,54 @@ public class MLMain : MonoBehaviour
         return ret;
 
     }
+
+    private static Vector CEFunc((Tensor x, Tensor y) input)
+    {
+        // x,y need to have the same length
+        Debug.Assert(input.x.Length==input.y.Length);
+        Vector ret = new Vector(1);
+        for (int i = 0; i < input.x.Length; i++)
+        {
+            ret[0] += -input.y[i] * (float)Math.Log(input.x[i]);
+        }
+        return ret;
+    }
+
+    private static Tensor CEDeriv((Tensor x, Tensor y) input)
+    {
+        // x,y need to have the same length
+        Debug.Assert(input.x.Length==input.y.Length);
+        
+        Vector ret = new Vector(input.x.Length);
+        for (int i = 0; i < input.x.Length; i++)
+        {
+            ret[i] = -(input.y[i] / input.x[i]) + (1 - input.y[i])/(1-input.x[i]);
+        }
+        return ret;
+
+    }
+    private static Vector BCCEFunc((Tensor x, Tensor y) input)
+    {
+        // x,y need to have the same length
+        Debug.Assert(input.x.Length==input.y.Length);
+        Vector ret = new Vector(1);
+        //L = -t1*log(s1) - (1-t1)*log(1-s1)
+        ret[0] = -input.y[0] * (float)Math.Log(input.x[0]) - (1 - input.y[0]) * (float)Math.Log(1 - input.x[0]);
+        return ret;
+    }
+
+    private static Tensor BCCEDeriv((Tensor x, Tensor y) input)
+    {
+        // x,y need to have the same length
+        Debug.Assert(input.x.Length==input.y.Length);
+        Vector ret = new Vector(input.x.Length);
+        for (int i = 0; i < input.x.Length; i++)
+        {
+            ret[i] = -(input.y[i] / input.x[i]) + ((1 - input.y[i])/(1-input.x[i]));
+        }
+        return ret;
+
+    }
     
     // a method that does the logging
     void log()
@@ -156,7 +169,18 @@ public class MLMain : MonoBehaviour
     {
         x = (float)rand.NextDouble() * 10;
         features[0] = x;
-        labels[0] = x * 2;
+        /*if (x > 5)
+        {
+            labels[0] = 1;
+            labels[1] = 0;
+        }
+        else
+        {
+            labels[0] = 0;
+            labels[1] = 1;
+
+        }*/
+        labels[0] = x*x + 6*x + 2;
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

@@ -48,12 +48,12 @@ namespace ML
     }
     
     // activation get a tensor and return a tensor
-    public class Activation:Function<Tensor,Tensor>{
-        public Activation(Func<Tensor, Tensor> function, Func<Tensor, Tensor> deriv, string name) : base(function, deriv, name)
+    public class Activation:Function<float,float>{
+        public Activation(Func<float, float> function, Func<float, float> deriv, string name) : base(function, deriv, name)
         {
         }
 
-        public Activation(Func<Tensor, Tensor> function, Func<Tensor, Tensor> deriv) : base(function, deriv)
+        public Activation(Func<float, float> function, Func<float, float> deriv) : base(function, deriv)
         {
         }
     }

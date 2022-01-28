@@ -10,6 +10,7 @@ namespace ML
 
         private Layer[] _layers;
         private Loss _loss;
+        private float learningRate;
         public Layer[] Layers
         {
             get => _layers;
@@ -28,13 +29,15 @@ namespace ML
 
         public Network(Layer[] layers,float learningRate,int inputSize, Loss loss)
         {
-            
+            this.learningRate = learningRate; 
             Layers = layers;
-            Layers[0].Init(inputSize,learningRate);
+            int[] shape = { inputSize };
+            Layers[0].Init(shape);
             // initiating the layer sizes and weights
             for (int i = 1; i < layers.Length; i++)
             {
-                Layers[i].Init(Layers[i-1].OutputSize,learningRate);
+                shape = Layers[i - 1].outputShape;
+                Layers[i].Init(shape);
             }
             Loss = loss;
         }
@@ -64,6 +67,7 @@ namespace ML
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
+            
             // a gradients array. the gradients will be applied after getting them. 
             // we put values in the array in the order we use and get them, meaning from the end to the start. 
             Matrix[] gradients = new Matrix[Layers.Length];
@@ -76,7 +80,11 @@ namespace ML
             {
                 // getting the loss for the next pass and the gradients for the layer
                 (loss, gradients[i],biasGradients[i]) = Layers[i].Backwards(loss);
-                
+                if (gradients[i] != null)
+                {
+                    gradients[i] *= learningRate;
+                    biasGradients[i] *= learningRate;
+                }
             }
             
             //applying the gradients

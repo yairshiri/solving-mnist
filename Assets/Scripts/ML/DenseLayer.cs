@@ -5,11 +5,13 @@ using Random = System.Random;
 
 namespace ML
 {
-    public class DenseLayer: Layer
+    public class DenseLayer: LearningLayer
     {
         #region variables
-        private float _learningRate;
-        
+        private float _learningRate = 0.00001f;
+
+        public int InputSize;
+        public int OutputSize;
         
 
         public float LearningRate
@@ -25,7 +27,7 @@ namespace ML
             set => _bias = value;
         }
 
-        public override Vector NeuronActivations
+        public Vector NeuronActivations
         {
             get => _neuronActivations;
             set
@@ -41,17 +43,21 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int size,Activation activationFunction,string name) : base(size, activationFunction, name)
+        public DenseLayer(int shape,Activation activationFunction,string name) : base(new []{shape}, activationFunction, name)
         {
-            OutputSize = size;
+            outputShape = new []{shape};
             Activation = activationFunction;
             Name = name;
+            // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
+            OutputSize = shape;
         }
         // constructor without name
-        public DenseLayer(int size,Activation activationFunction) : base(size, activationFunction)
+        public DenseLayer(int shape,Activation activationFunction) : base(new []{shape}, activationFunction)
         {
-            OutputSize = size;
+            outputShape = new []{shape};
             Activation = activationFunction;
+            // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
+            OutputSize = shape;
         }
         
 
@@ -59,12 +65,12 @@ namespace ML
 
         #region methods
         // initiating the variables
-        public override void Init(int inputSize,float learningRate)
+        public override void Init(int[] inputShape)
         {
-            LearningRate = learningRate;
             //initiating the sizes and the vectors
-            InputSize = inputSize;
-            NeuronActivations = new Vector(inputSize);
+            InputSize = inputShape[0];
+            base.Init(inputShape);
+            NeuronActivations = new Vector(InputSize);
             Weights = new Matrix(OutputSize, InputSize, 0);
             // initiating the bias with a 0.001 value, will init with other values later (like we generate weights)
             Bias = new Vector(OutputSize,"bias");
@@ -87,8 +93,7 @@ namespace ML
                 Bias[i] = ((float)rand.NextDouble()*2*lim)-lim;
             }
         }
-
-
+        
         // feedforward of a classical Dense layer
         public override Tensor Forwards(Tensor input)
         {
@@ -107,7 +112,6 @@ namespace ML
                 // passing through the activation function:
                 ret[i] = Activation.Func(ret[i]);
             }
-
             return ret;
         }        
         // feedforward of a classical Dense layer, without the activation
@@ -180,13 +184,13 @@ namespace ML
                     {
                         Debug.Log("oops");
                     }
-                    Weights[i][j].Data -= wGrads[i][j] * LearningRate;
+                    Weights[i][j].Data -= wGrads[i][j] ;
                 }
             }
             // applying the bias gradients
             for (int i = 0; i < OutputSize; i++)
             {
-                Bias[i] -= bGrads[i] * LearningRate;
+                Bias[i] -= bGrads[i] ;
             }
 
         }
