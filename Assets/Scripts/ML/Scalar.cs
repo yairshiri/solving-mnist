@@ -49,6 +49,14 @@
         public static float operator +(float a,Scalar b)
         {
             return b.Data + a;
+        }  
+        public static float operator -(Scalar a,float b)
+        {
+            return a.Data - b;
+        }
+        public static float operator -(float a,Scalar b)
+        {
+            return a-b.Data;
         }
         public static float operator *(Scalar a,float b)
         {

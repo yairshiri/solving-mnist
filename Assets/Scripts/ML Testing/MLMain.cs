@@ -5,7 +5,6 @@ using ML;
 using UnityEngine;
 using Network = ML.Network;
 using Vector = ML.Vector;
-using Layer = ML.DenseLayer;
 using Random = System.Random;
 
 public class MLMain : MonoBehaviour
@@ -22,20 +21,20 @@ public class MLMain : MonoBehaviour
     
     private float lr = 0.0001f;
     private Vector features = new Vector(1);
-    private Vector labels = new Vector(2);
+    private Vector labels = new Vector(1);
     private Random rand = new Random();
     private float x ;
 
     // creating the relu activation func 
-    private ML.Function<float, float> relu = new Function<float, float>( reluFunc,reluDeriv,"relu");
+    private ML.Activation relu = new Activation( reluFunc,reluDeriv,"relu");
     // creating the relu activation func 
-    private ML.Function<float, float> sigmoid = new Function<float, float>( sigFunc,sigDeriv,"sigmoid");
+    private ML.Activation sigmoid = new Activation( sigFunc,sigDeriv,"sigmoid");
     // creating the linear activation func 
-    private ML.Function<float, float> linear = new Function<float, float>( linearFunc,linearDeriv,"linear");
+    private ML.Activation linear = new Activation( linearFunc,linearDeriv,"linear");
     // creating the softmax activation func 
-    private ML.Function<Vector,Vector> softmax = new Function<Vector,Vector>( softmaxFunc,softmaxDeriv,"softmax");
+    private ML.Activation softmax = new Activation( softmaxFunc,softmaxDeriv,"softmax");
     // creating the mse loss
-    private ML.Function<(Vector,Vector), Vector> mse = new Function<(Vector,Vector), Vector>( mseFunc,mseDeriv,"mse");
+    private ML.Loss mse = new Loss( mseFunc,mseDeriv,"mse");
 
     private Network net;
     
@@ -46,43 +45,42 @@ public class MLMain : MonoBehaviour
         Layer[] layers=
         {
             
-            new ML.DenseLayer(3,relu,"d1"),
-            new ML.DenseLayer(4,relu,"d2"),
-            new ML.DenseLayer(2,linear,"output")
+            new ML.DenseLayer(4,linear,"d1"),
+            new ML.DenseLayer(2,softmax,"output")
         };
         net = new Network(layers,lr,1,mse);
         x = (float)rand.NextDouble() * 10;
     }
 
-    private static float reluFunc(float x)
+    private static Tensor reluFunc(Tensor x)
     {
-        return Math.Max(x, 0);
+        return new Scalar(Math.Max(x.Data, 0));
     }
 
-    private static float sigFunc(float x)
+    private static Tensor sigFunc(Tensor x)
     {
-        return 1.0f / (float)(1 + Math.Exp(-x));
+        return new Scalar( 1.0f / (float)(1 + Math.Exp(-x.Data)));
     }
-    private static float sigDeriv(float x)
+    private static Tensor sigDeriv(Tensor x)
     {
-        return sigFunc(x) * (1-sigFunc(x));
+        return new Scalar(sigFunc(x).Data * (1-sigFunc(x).Data));
     }
 
-    private static float reluDeriv(float x)
+    private static Tensor reluDeriv(Tensor x)
     {
-        return Math.Max(x, 0)/Math.Abs(x);
+        return new Scalar(Math.Max(x.Data, 0)/Math.Abs(x.Data));
     }
-    private static float linearFunc(float x)
+    private static Tensor linearFunc(Tensor x)
     {
         return x;
     }
 
-    private static float linearDeriv(float x)
+    private static Tensor linearDeriv(Tensor x)
     {
-        return 1;
+        return new Scalar(1);
     }
 
-    private static Vector softmaxFunc(Vector x) 
+    private static Tensor softmaxFunc(Tensor x) 
     {
         // initializing a new vector with the length of x.
         Vector ret = new Vector(x.Length);
@@ -109,9 +107,9 @@ public class MLMain : MonoBehaviour
         return ret;
     }
     // softmax deriv from https://towardsdatascience.com/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1
-    private static Vector softmaxDeriv(Vector x)
+    private static Tensor softmaxDeriv(Tensor x)
     {
-        Vector ret = softmaxFunc(x);
+        Vector ret =(Vector) softmaxFunc(x);
         for (int i = 0; i < x.Length; i++)
         {
             ret[i] = ret[i] * (1 - ret[i]);
@@ -120,7 +118,7 @@ public class MLMain : MonoBehaviour
     }
     
 
-    private static Vector mseFunc((Vector x, Vector y) input)
+    private static Tensor mseFunc((Tensor x, Tensor y) input)
     {
         // x,y need to have the same length
         Debug.Assert(input.x.Length==input.y.Length);
@@ -133,7 +131,7 @@ public class MLMain : MonoBehaviour
         return ret;
     }
 
-    private static Vector mseDeriv((Vector x, Vector y) input)
+    private static Vector mseDeriv((Tensor x, Tensor y) input)
     {
         // x,y need to have the same length
         Debug.Assert(input.x.Length==input.y.Length);
@@ -158,16 +156,7 @@ public class MLMain : MonoBehaviour
     {
         x = (float)rand.NextDouble() * 10;
         features[0] = x;
-        if (x > 5)
-        {
-            labels[0] = 0;
-            labels[1] = 1;
-        }
-        else
-        {
-            labels[0] = 1;
-            labels[1] = 0;
-        }
+        labels[0] = x * 2;
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

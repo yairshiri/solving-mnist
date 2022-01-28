@@ -46,4 +46,28 @@ namespace ML
 
         #endregion
     }
+    
+    // activation get a tensor and return a tensor
+    public class Activation:Function<Tensor,Tensor>{
+        public Activation(Func<Tensor, Tensor> function, Func<Tensor, Tensor> deriv, string name) : base(function, deriv, name)
+        {
+        }
+
+        public Activation(Func<Tensor, Tensor> function, Func<Tensor, Tensor> deriv) : base(function, deriv)
+        {
+        }
+    }
+    
+    // loss function revive two tensors and return a tensor
+    public class Loss:Function<(Tensor, Tensor),Tensor>
+    {
+        public Loss(Func<(Tensor, Tensor), Tensor> function, Func<(Tensor, Tensor), Tensor> deriv, string name) : base(function, deriv, name)
+        {
+        }
+
+        public Loss(Func<(Tensor, Tensor), Tensor> function, Func<(Tensor, Tensor), Tensor> deriv) : base(function, deriv)
+        {
+        }
+    }
+    
 }

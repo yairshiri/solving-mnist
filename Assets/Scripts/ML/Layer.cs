@@ -5,12 +5,12 @@ using Random = System.Random;
 
 namespace ML
 {
-    public abstract class Layer<inputType,outputType>
+    public abstract class Layer
     {
         #region variables
         // every type of layer has weights
         private Matrix _weights = new Matrix();
-
+        
         // this remembers the last activations. Every layer needs to implemants this in a deferent way
         protected Vector _neuronActivations;
         
@@ -31,7 +31,7 @@ namespace ML
 
         public string Name { get; set; }
 
-        public Function<float, float> Activation { get; set; }
+        public Function<Tensor, Tensor> Activation { get; set; }
         
         public virtual Vector NeuronActivations
         {
@@ -51,14 +51,14 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public Layer(int size,Function<float,float> activationFunction,string name)
+        public Layer(int size,Function<Tensor,Tensor> activationFunction,string name)
         {
             OutputSize = size;
             Activation = activationFunction;
             Name = name;
         }
         // constructor without name
-        public Layer(int size,Function<float,float> activationFunction)
+        public Layer(int size,Function<Tensor,Tensor> activationFunction)
         {
             OutputSize = size;
             Activation = activationFunction;
@@ -72,10 +72,10 @@ namespace ML
         public abstract void Init(int inputSize, float learningRate);
 
 
-        public abstract outputType Forwards(inputType input);
+        public abstract Tensor Forwards(Tensor input);
         // return type is inputType,Matrix,vector because we return the gradients with respects to the inputs(inputtype) and the gradients to be applied
         // to the weights, which are metrices. Vector is for the bias
-        public abstract (inputType,Matrix,Vector) Backwards(outputType input);
+        public abstract (Tensor,Matrix,Vector) Backwards(Tensor input);
         // wGrads is the gradients for the weights, and bGrads is the gradients for the bias 
         public abstract void ApplyGradients(Matrix wGrads,Vector bGrads);
         

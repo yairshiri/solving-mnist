@@ -5,7 +5,7 @@ using Random = System.Random;
 
 namespace ML
 {
-    public class DenseLayer: Layer<Vector,Vector>
+    public class DenseLayer: Layer
     {
         #region variables
         private float _learningRate;
@@ -41,14 +41,14 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int size,Function<float,float> activationFunction,string name) : base(size, activationFunction, name)
+        public DenseLayer(int size,Activation activationFunction,string name) : base(size, activationFunction, name)
         {
             OutputSize = size;
             Activation = activationFunction;
             Name = name;
         }
         // constructor without name
-        public DenseLayer(int size,Function<float,float> activationFunction) : base(size, activationFunction)
+        public DenseLayer(int size,Activation activationFunction) : base(size, activationFunction)
         {
             OutputSize = size;
             Activation = activationFunction;
@@ -90,10 +90,10 @@ namespace ML
 
 
         // feedforward of a classical Dense layer
-        public override Vector Forwards(Vector input)
+        public override Tensor Forwards(Tensor input)
         {
             // saving the input for the backwards pass
-            NeuronActivations = input;
+            NeuronActivations = (Vector) input;
             Vector ret = new Vector(OutputSize);
             for (int i = 0; i < OutputSize; i++)
             {
@@ -129,7 +129,7 @@ namespace ML
         
         
         // backwards pass of a classical Dense layer
-        public override (Vector,Matrix,Vector) Backwards(Vector loss)
+        public override (Tensor, Matrix, Vector) Backwards(Tensor loss)
         {
             // verify that loss has the appropriate shape
             Assert.AreEqual(loss.Length,OutputSize);

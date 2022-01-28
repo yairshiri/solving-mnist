@@ -41,7 +41,7 @@ namespace ML
         // constructor with name and data as  floats
         public Vector(float[]data,string name) : base(1, name)
         {
-            this.Data = new Scalar[data.Length];
+            this._data = new Scalar[data.Length];
             for (int i = 0; i < Length; i++)
             {
                 Data[i] = new Scalar(data[i]);
@@ -51,7 +51,7 @@ namespace ML
         // constructor without name and data as floats
         public Vector(float[] data) : base(1)
         {
-            this.Data = new Scalar[data.Length];
+            this._data = new Scalar[data.Length];
             for (int i = 0; i < Length; i++)
             {
                 Data[i] = new Scalar(data[i]);
@@ -61,7 +61,7 @@ namespace ML
         // constructor without name and data as float to be applied to all elements
         public Vector(int size, float data) : base(1)
         {
-            this.Data = new Scalar[size];
+            this._data = new Scalar[size];
             for (int i = 0; i < Length; i++)
             {
                 Data[i] = new Scalar(data);
@@ -72,12 +72,12 @@ namespace ML
         // constructor with size and name
         public Vector(int size, string name) : base(1, name)
         {
-            this.Data = new Scalar[size];
+            this.Length = size;
+            this._data = new Scalar[size];
             for (int i = 0; i < Length; i++)
             {
                 Data[i] = new Scalar(0);
             }
-            this.Length = size;
             this.Name = name;
         }
         

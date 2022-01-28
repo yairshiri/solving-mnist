@@ -8,15 +8,15 @@ namespace ML
     {
         #region variables
 
-        private DenseLayer[] _layers;
-        private Function<(Vector, Vector), Vector> _loss;
-        public DenseLayer[] Layers
+        private Layer[] _layers;
+        private Loss _loss;
+        public Layer[] Layers
         {
             get => _layers;
             set => _layers = value;
         }
         
-        public Function<(Vector, Vector), Vector> Loss
+        public Loss Loss
         {
             get => _loss;
             set => _loss = value;
@@ -26,7 +26,7 @@ namespace ML
 
         #region constructors
 
-        public Network(DenseLayer[] layers,float learningRate,int inputSize, Function<(Vector, Vector), Vector> loss)
+        public Network(Layer[] layers,float learningRate,int inputSize, Loss loss)
         {
             
             Layers = layers;
@@ -45,9 +45,9 @@ namespace ML
         
         
         // a method that runs an input through the networks and gives an output
-        public Vector forwards(Vector input)
+        public Tensor forwards(Vector input)
         {
-            Vector ret= input;
+            Tensor ret= input;
             // looping through the layers
             for (int i = 0; i < Layers.Length; i++)
             {
@@ -60,9 +60,9 @@ namespace ML
         public void backwards(Vector features,Vector labels)
         {
             // getting a prediction from the network
-            Vector pred = forwards(features);
+            Vector pred = (Vector) forwards(features);
             // finding the loss
-            Vector loss = Loss.Func((pred, labels));
+            Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
             // a gradients array. the gradients will be applied after getting them. 
             // we put values in the array in the order we use and get them, meaning from the end to the start. 
