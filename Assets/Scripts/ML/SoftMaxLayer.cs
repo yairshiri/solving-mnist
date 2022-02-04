@@ -6,13 +6,15 @@ namespace ML
     {
         #region Fields
 
-        private static Function<Tensor, Tensor> softmax = new Function<Tensor, Tensor>(softmaxFunc, softmaxDeriv,"softmax");
+        private static float NOISE = 0.00001f;
+        private Function<Tensor, Tensor> softmax;
 
         #endregion
         
-        public SoftMaxLayer(int[] size, string name = "") : base(size,softmax,name)
+        public SoftMaxLayer(int size, string name = "") : base(new [] {size},name)
         {
-            
+            softmax  = new Function<Tensor, Tensor>(softmaxFunc, softmaxDeriv,"softmax");
+            Init(softmax);
         }
 
         #region Methods
@@ -24,10 +26,10 @@ namespace ML
             float sum = 0;
             // finding the max value in x
             float max = 0;
-            for (int i = 0; i < ret.Length; i++)
+            /*for (int i = 0; i < ret.Length; i++)
                 if (x[i] > max)
-                    max = x[i];
-            // every element is e to the power of the elements devided by the sum of e to the poewr of all the elements.
+                    max = x[i];*/
+            // every element is e to the power of the elements devided by the sum of e to the power of all the elements.
             // implementation from https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
             for (int i = 0; i < ret.Length; i++)
             {   
@@ -40,20 +42,27 @@ namespace ML
             for (int i = 0; i < ret.Length; i++)
             {
                 ret[i] /= sum;
+                //we do this because we dont want to have 0s (for backprop), so we set a lower bound (NOISE)
+                ret[i] = Math.Max(ret[i], NOISE);
             }
             return ret;
         }
-        // softmax deriv from https://towardsdatascience.com/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1
-        private static Tensor softmaxDeriv(Tensor x)
+        // softmax deriv from https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+        private Tensor softmaxDeriv(Tensor x)
         {
-            Vector ret =(Vector) softmaxFunc(x);
+            //copying x and getting the softmax values for the deriv
+            Vector ret = new Vector(x.Length);
+            Vector softmaxes = (Vector)softmaxFunc((Vector)_neuronActivations);
             for (int i = 0; i < x.Length; i++)
             {
-                ret[i] = ret[i] * (1 - ret[i]);
+                // ret[i] = the derivative of Si w.r.t Zi
+                ret[i] = softmaxes[i]*(1-softmaxes[i]);
+                // multiplying with the prev derivative:
+                ret[i] = ret[i] * x[i];
             }
             return ret;
         }
-
+        
         #endregion
         
     }

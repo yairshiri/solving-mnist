@@ -15,6 +15,9 @@ namespace ML
         public int[] inputShape;
         public string Name { get; set; }
         
+        // this remembers the last activations. Every layer needs to implemants this in a deferent way
+        protected Tensor _neuronActivations;
+
         #endregion
 
         #region constructors

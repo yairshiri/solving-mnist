@@ -29,10 +29,15 @@ public  class Tensor
     // every tensor needs to have data, but it might be overridden in inheritance.
     // we set data to a float array because if its a scalar then it's just easier to handle everything with array.
     protected float[] _data = {0};
-    public float Data
+    public  float Data
     {
         get => _data[0];
         set => _data[0] = value;
+    }
+    public  float[] DataArr
+    {
+        get => _data;
+        set => _data = value;
     }
     
     // length is the size of the data

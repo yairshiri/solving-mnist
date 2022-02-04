@@ -95,12 +95,22 @@ namespace ML
         // copy constructor
         public Vector(Vector a) : base(1)
         {
-            this.Data = new Scalar[a.Length];
-            for (int i = 0; i < Length; i++)
+            this.Data = a.Data;
+            this.Name = a.Name;
+        }
+        //copy from tensor constructor
+        public Vector(Tensor a) : base(1)
+        {
+            // make sure that the tensor a is actually a vector:
+            Assert.AreEqual(a.Dimension, 1);
+            // if it is a vector, copy it.
+            Name = a.Name;
+            // copying the data from a to this
+            _data = new Scalar[a.Length];
+            for (int i = 0; i < a.Length; i++)
             {
                 Data[i] = new Scalar(a[i]);
             }
-            this.Name = a.Name;
         }
         
         #endregion
@@ -124,6 +134,16 @@ namespace ML
         }
         // vector scalar element-wise multiplication.
         public static Vector operator *(Vector a, Scalar b)
+        {
+            Vector ret = new Vector(a);
+            for (int i = 0; i < a.Length; i++)
+            {
+                ret[i] = b * ret[i] ;
+            }
+
+            return ret;
+        }
+        public static Vector operator *(Vector a, float b)
         {
             Vector ret = new Vector(a);
             for (int i = 0; i < a.Length; i++)

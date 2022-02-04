@@ -12,11 +12,22 @@ namespace ML
         public ActionLayer(int[] shape,Function<Tensor,Tensor> action, string name="") : base(shape,name)
         {
             this.action = action;
+            Name = name;
+        }
+        public ActionLayer(int[] shape, string name="") : base(shape,name)
+        {
+            Name = name;
         }
         #endregion
-        
+
+        protected void Init(Function<Tensor, Tensor> action)
+        {
+            this.action = action;
+        }
         public override Tensor Forwards(Tensor input)
         {
+            // saving the input to the layer. used in the backprop
+            _neuronActivations = input;
             return action.Func(input);
         }
 

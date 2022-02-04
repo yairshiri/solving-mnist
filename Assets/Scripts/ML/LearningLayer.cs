@@ -8,8 +8,6 @@ namespace ML
         // every type of layer has weights
         private Matrix _weights = new Matrix();
         
-        // this remembers the last activations. Every layer needs to implemants this in a deferent way
-        protected Vector _neuronActivations;
         
         
         // the bias vector. it's length is the length of the output.

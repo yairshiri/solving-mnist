@@ -27,7 +27,7 @@ namespace ML
             set => _bias = value;
         }
 
-        public Vector NeuronActivations
+        public Tensor NeuronActivations
         {
             get => _neuronActivations;
             set
@@ -144,7 +144,7 @@ namespace ML
             // the vector for the bias
             Vector bGrads = new Vector(OutputSize);
             //updating the losses with dg/da (the gradient of the result of the activation with respect to the multiplicative sum)
-            Vector forwardsResult = ForwardsRetNet(NeuronActivations);
+            Vector forwardsResult = ForwardsRetNet((Vector)NeuronActivations);
             for (int i = 0; i < loss.Length; i++)
             {
                 if (forwardsResult[i] == 0)

@@ -21,7 +21,7 @@ public class MLMain : MonoBehaviour
     
     private float lr = 0.0001f;
     private Vector features = new Vector(1);
-    private Vector labels = new Vector(1);
+    private Vector labels = new Vector(2);
     private Random rand = new Random();
     private float x ;
 
@@ -38,7 +38,7 @@ public class MLMain : MonoBehaviour
     // creating the Categorical crossEntropy loss
     private ML.Loss CE = new Loss( CEFunc,CEDeriv,"categorical crossentropy");
     // creating the Binary Catergorical crossEntropy loss
-    private ML.Loss BCE = new Loss( BCCEFunc,BCCEDeriv,"binary categorical crossentropy");
+    private ML.Loss BCE = new Loss( BCCEFunc,CEDeriv,"binary categorical crossentropy");
     private Network net;
     
     
@@ -50,11 +50,13 @@ public class MLMain : MonoBehaviour
             
             new DenseLayer(3,relu,"d1"),
             new DenseLayer(4,relu,"d2"),
-            new DenseLayer(1,linear,"output")};
-        net = new Network(layers,lr,1,mse);
+            new DenseLayer(2,linear,"output"),
+            new SoftMaxLayer(2,"softmax")
+        };
+        net = new Network(layers,lr,1,BCE);
         x = (float)rand.NextDouble() * 10;
     }
-
+    #region activations
     private static float reluFunc(float x)
     {
         return Math.Max(x, 0);
@@ -83,81 +85,83 @@ public class MLMain : MonoBehaviour
         return 1;
     }
     
-    private static Tensor mseFunc((Tensor x, Tensor y) input)
+    private static Tensor mseFunc((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
+        Debug.Assert(input.pred.Length==input.label.Length);
         Vector ret = new Vector(1);
-        for (int i = 0; i < input.x.Length; i++)
+        for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0] += (float)Math.Pow(input.x[i] - input.y[i],2);
+            ret[0] += (float)Math.Pow(input.pred[i] - input.label[i],2);
         }
 
         return ret;
     }
 
-    private static Vector mseDeriv((Tensor x, Tensor y) input)
+    private static Vector mseDeriv((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
-        Vector ret = new Vector(input.x.Length);
-        for (int i = 0; i < input.x.Length; i++)
+        Debug.Assert(input.pred.Length==input.label.Length);
+        Vector ret = new Vector(input.pred.Length);
+        for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = 2*(input.x[i] - input.y[i]);
+            ret[i] = 2*(input.pred[i] - input.label[i]);
         }
         return ret;
 
     }
 
-    private static Vector CEFunc((Tensor x, Tensor y) input)
+    private static Vector CEFunc((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
+        Debug.Assert(input.pred.Length==input.label.Length);
         Vector ret = new Vector(1);
-        for (int i = 0; i < input.x.Length; i++)
+        for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0] += -input.y[i] * (float)Math.Log(input.x[i]);
+            ret[0] += -input.label[i] * (float)Math.Log(input.pred[i],2);
         }
         return ret;
     }
 
-    private static Tensor CEDeriv((Tensor x, Tensor y) input)
+    private static Tensor CEDeriv((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
+        Debug.Assert(input.pred.Length==input.label.Length);
         
-        Vector ret = new Vector(input.x.Length);
-        for (int i = 0; i < input.x.Length; i++)
+        Vector ret = new Vector(input.pred.Length);
+        for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = -(input.y[i] / input.x[i]) + (1 - input.y[i])/(1-input.x[i]);
+            ret[i] = -(input.label[i] / input.pred[i]);
         }
         return ret;
 
     }
-    private static Vector BCCEFunc((Tensor x, Tensor y) input)
+    private static Vector BCCEFunc((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
+        Debug.Assert(input.pred.Length==input.label.Length);
         Vector ret = new Vector(1);
         //L = -t1*log(s1) - (1-t1)*log(1-s1)
-        ret[0] = -input.y[0] * (float)Math.Log(input.x[0]) - (1 - input.y[0]) * (float)Math.Log(1 - input.x[0]);
+        ret[0] = -input.label[0] * (float)Math.Log(input.pred[0],2) - input.label[1] * (float)Math.Log(input.pred[1],2);
         return ret;
     }
 
-    private static Tensor BCCEDeriv((Tensor x, Tensor y) input)
+    private static Tensor BCCEDeriv((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
-        Debug.Assert(input.x.Length==input.y.Length);
-        Vector ret = new Vector(input.x.Length);
-        for (int i = 0; i < input.x.Length; i++)
+        Debug.Assert(input.pred.Length==input.label.Length);
+        Vector ret = new Vector(input.pred.Length);
+        for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = -(input.y[i] / input.x[i]) + ((1 - input.y[i])/(1-input.x[i]));
+            ret[i] = -(input.label[i] / input.pred[i]) + (1 - input.label[i])/(1-input.pred[i]);
         }
         return ret;
 
     }
     
-    // a method that does the logging
+    #endregion
+    
+    // a method that does the logging. yeah it's a great comment.
     void log()
     {
         Debug.Log(net.ToString());
@@ -169,7 +173,7 @@ public class MLMain : MonoBehaviour
     {
         x = (float)rand.NextDouble() * 10;
         features[0] = x;
-        /*if (x > 5)
+        if (x > 5)
         {
             labels[0] = 1;
             labels[1] = 0;
@@ -179,8 +183,8 @@ public class MLMain : MonoBehaviour
             labels[0] = 0;
             labels[1] = 1;
 
-        }*/
-        labels[0] = x*x + 6*x + 2;
+        }
+        //labels[0] = x*x + 6*x + 2;
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

@@ -112,7 +112,24 @@ namespace ML
 
             return ret;
         }
-        
+        // matrix element-wise multiplication
+        public static Matrix operator *(Matrix a, float b)
+        {
+            Matrix ret = new Matrix(a);
+            for (int i = 0; i < a.Height; i++)
+            {
+                for (int j = 0; j < a.Width; j++)
+                {
+                    ret[i][j] = new Scalar(ret[i][j] * b);
+                }
+            }
+            return ret;
+        }
+        // matrix element-wise multiplication
+        public static Matrix operator *(float a, Matrix b)
+        {
+            return b*a;
+        }
         public new Scalar[] this[int i]
         {
             get => _data[i];
