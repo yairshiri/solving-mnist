@@ -17,6 +17,12 @@ namespace ML
         
         // this remembers the last activations. Every layer needs to implemants this in a deferent way
         protected Tensor _neuronActivations;
+        
+        public Tensor NeuronActivations
+        {
+            get => _neuronActivations;
+            set => _neuronActivations = value;
+        }
 
         #endregion
 

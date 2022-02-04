@@ -38,7 +38,7 @@ public class MLMain : MonoBehaviour
     // creating the Categorical crossEntropy loss
     private ML.Loss CE = new Loss( CEFunc,CEDeriv,"categorical crossentropy");
     // creating the Binary Catergorical crossEntropy loss
-    private ML.Loss BCE = new Loss( BCCEFunc,CEDeriv,"binary categorical crossentropy");
+    private ML.Loss BCE = new Loss( BCCEFunc,BCCEDeriv,"binary categorical crossentropy");
     private Network net;
     
     
@@ -48,10 +48,12 @@ public class MLMain : MonoBehaviour
         Layer[] layers=
         {
             
-            new DenseLayer(3,relu,"d1"),
-            new DenseLayer(4,relu,"d2"),
-            new DenseLayer(2,linear,"output"),
-            new SoftMaxLayer(2,"softmax")
+            new DenseLayer(3,"d1"),
+            new SigmoidLayer(3,"activation 1"),
+            new DenseLayer(4,"d2"),
+            new SigmoidLayer(4,"activation 2"),
+            new DenseLayer(labels.Length,"d3"),
+            new SoftMaxLayer(labels.Length,"activation 3")
         };
         net = new Network(layers,lr,1,BCE);
         x = (float)rand.NextDouble() * 10;
@@ -173,18 +175,12 @@ public class MLMain : MonoBehaviour
     {
         x = (float)rand.NextDouble() * 10;
         features[0] = x;
-        if (x > 5)
-        {
-            labels[0] = 1;
-            labels[1] = 0;
-        }
-        else
-        {
-            labels[0] = 0;
-            labels[1] = 1;
-
-        }
+        //labels[0] = x * 1.5f + 2;
         //labels[0] = x*x + 6*x + 2;
+        labels[0] = 1;
+        if (x > 5)
+            labels[0] = 0;
+        labels[1] = 1 - labels[0];
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

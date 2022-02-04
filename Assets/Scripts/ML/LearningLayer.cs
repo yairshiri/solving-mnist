@@ -8,6 +8,8 @@ namespace ML
         // every type of layer has weights
         private Matrix _weights = new Matrix();
         
+        // this remembers the last activations. Every layer needs to implemants this in a deferent way
+        protected new Vector _neuronActivations;
         
         
         // the bias vector. it's length is the length of the output.
@@ -20,13 +22,11 @@ namespace ML
             set => _weights = new Matrix(value);
         }
         
-        public Activation Activation { get; set; }
         #endregion Fields
         
         #region Constructors
-        public LearningLayer(int[] shape, Activation activationFunction, string name="") : base(shape,name)
+        public LearningLayer(int[] shape, string name="") : base(shape,name)
         {
-            Activation = activationFunction; 
         }
         #endregion
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine.Assertions;
+﻿using System;
+using UnityEngine.Assertions;
 
 namespace ML
 {
@@ -27,7 +28,15 @@ namespace ML
             get => _data;
             set
             {
-                _data =(Scalar[][]) value.Clone();
+                _data = new Scalar[value.Length][];
+                for (int i = 0; i < _data.Length; i++)
+                {
+                    _data[i] = new Scalar[value[i].Length];
+                    for (int j = 0; j < value[0].Length; j++)
+                    {
+                        _data[i][j] = new Scalar(value[i][j]);
+                    }
+                }
                 // setting the new length, width, height
                 Length = value.Length;
                 Width = _data[0].Length;
@@ -49,14 +58,7 @@ namespace ML
         }
         
         // constructor with data and name
-        public Matrix(Scalar[][] data, string name) : base(2, name)
-        {
-            // setting the data. we created the setter above
-            Data = data;
-        }
-        
-        // constructor with only data
-        public Matrix(Scalar[][] data) : base(2)
+        public Matrix(Scalar[][] data, string name = "") : base(2, name)
         {
             // setting the data. we created the setter above
             Data = data;
@@ -67,7 +69,7 @@ namespace ML
             Data = a.Data;
         }
         // init data to all value
-        public Matrix(int height, int width,float value) : base(2)
+        public Matrix(int height, int width,float value = 0) : base(2)
         {
             // initiating width and height
             Height = height;
@@ -83,6 +85,14 @@ namespace ML
                     _data[i][j] = new Scalar(value);
                 }
             }
+        }
+        
+        // copy from tensor 
+        public Matrix(Tensor data) :base(2,data.Name)
+        {
+            // make sure data is a Matrix
+            Assert.AreEqual(data.Dimension, 2);
+            Data = ((Matrix)data).Data;
         }
 
         #endregion
@@ -167,7 +177,48 @@ namespace ML
             return ret;
             
         }
-        
+
+        public override Tensor ElementWiseFunction(Func<Tensor, Tensor> func)
+        {
+            // creating a copy of this
+            Matrix ret = new Matrix(this);
+            // applying the function
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j] = new Scalar(func(ret.Data[i][j]));
+
+                }
+            }
+            return ret;
+
+        }
+
+        public override Tensor ElementWiseMultiply(Tensor a)
+        {
+            // make sure they are both the same size
+            Assert.AreEqual(a.Dimension,2);
+            // convert a to a matrix
+            Matrix currectA = new Matrix(a);
+            // make sure they are of the same size
+            Assert.AreEqual(currectA.Width,this.Width );
+            Assert.AreEqual(currectA.Height,this.Height );
+            // create the return Matrix
+            Matrix ret = new Matrix(Height, Width);
+            for (int i = 0; i < Height; i++)
+            {
+                for (int j = 0; j < Width; j++)
+                    // the multiplication
+                    ret[i][j] = new Scalar(currectA[i][j] * this[i][j]);
+            }
+            return ret;
+        }
+
+        public override Tensor Clone()
+        {
+            return new Matrix(this);
+        }
 
         #endregion
     }

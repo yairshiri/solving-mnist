@@ -63,14 +63,12 @@ namespace ML
         public void backwards(Vector features,Vector labels)
         {
             // getting a prediction from the network
-            Vector pred = (Vector) forwards(features);
-            // finding the loss
-            if (pred[0] == 0 || pred[1] == 0)
-            {
-            }
+            Vector pred = new Vector( forwards(features));
             if (pred[0] == 1 || pred[1] == 1)
             {
+                Debug.Log("oops");
             }
+            // finding the loss
             Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
             

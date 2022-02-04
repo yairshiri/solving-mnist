@@ -5,7 +5,7 @@ using ML;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public  class Tensor
+public  abstract class Tensor
 {
     #region variables
     // every tensor needs dimensionality 
@@ -67,7 +67,7 @@ public  class Tensor
 
     #region operators
     // trying to make a general + operator for tensors
-    public static Tensor operator +(Tensor a, Tensor b)
+    /*public static Tensor operator +(Tensor a, Tensor b)
     {
         // if at least one of the tensors is a scalar, just add the scalar to all elements. 
         // we do it with the Math.Min(length,i) because if the length is 1, then it means that
@@ -93,7 +93,7 @@ public  class Tensor
         }
         
         return ret;
-    }
+    }*/
 
     
     // square brackets operator
@@ -118,6 +118,12 @@ public  class Tensor
         return ret;
     }
 
+    public abstract Tensor ElementWiseFunction(Func<Tensor, Tensor> func);
+
+
+    public abstract Tensor ElementWiseMultiply(Tensor a);
+    
+    public abstract Tensor Clone();
     #endregion
 
 }

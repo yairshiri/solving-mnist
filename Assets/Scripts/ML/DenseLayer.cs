@@ -27,14 +27,16 @@ namespace ML
             set => _bias = value;
         }
 
-        public Tensor NeuronActivations
+        public new Vector NeuronActivations
         {
             get => _neuronActivations;
             set
             {
+                // checking that value is a vector
+                Assert.AreEqual(value.Dimension,1);
                 // need to check that the size of the neuron activations vector is good
                 Assert.AreEqual(InputSize,value.Length);
-                _neuronActivations = value;
+                _neuronActivations = new Vector(value);
             }
         }
         #endregion
@@ -43,19 +45,17 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int shape,Activation activationFunction,string name) : base(new []{shape}, activationFunction, name)
+        public DenseLayer(int shape,string name) : base(new []{shape}, name)
         {
             outputShape = new []{shape};
-            Activation = activationFunction;
             Name = name;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
         // constructor without name
-        public DenseLayer(int shape,Activation activationFunction) : base(new []{shape}, activationFunction)
+        public DenseLayer(int shape ) : base(new []{shape})
         {
             outputShape = new []{shape};
-            Activation = activationFunction;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
@@ -98,7 +98,7 @@ namespace ML
         public override Tensor Forwards(Tensor input)
         {
             // saving the input for the backwards pass
-            NeuronActivations = (Vector) input;
+            NeuronActivations = new Vector(input);
             Vector ret = new Vector(OutputSize);
             for (int i = 0; i < OutputSize; i++)
             {
@@ -109,8 +109,6 @@ namespace ML
                 }
                 // adding the bias
                 ret[i] += Bias[i];
-                // passing through the activation function:
-                ret[i] = Activation.Func(ret[i]);
             }
             return ret;
         }        
@@ -143,14 +141,6 @@ namespace ML
             Vector aGrads = new Vector(InputSize);
             // the vector for the bias
             Vector bGrads = new Vector(OutputSize);
-            //updating the losses with dg/da (the gradient of the result of the activation with respect to the multiplicative sum)
-            Vector forwardsResult = ForwardsRetNet((Vector)NeuronActivations);
-            for (int i = 0; i < loss.Length; i++)
-            {
-                if (forwardsResult[i] == 0)
-                    Debug.Log("moshe");
-                loss[i] *= Activation.FunctionDeriv(forwardsResult[i]);
-            }
             // getting the gradients for the weights and the bias
             //looping through the output neurons
             for (int i = 0; i < wGrads.Height; i++)
@@ -174,7 +164,7 @@ namespace ML
         // the way we apply gradients in a fully connected layer, singular
         public override void ApplyGradients(Matrix wGrads,Vector bGrads)
         {
-            // we apply WGrads (weight += learning rate * grad)
+            // we apply WGrads (weight -= grad)
             for (int i = 0; i < wGrads.Height; i++)
             {
                 for (int j = 0; j < wGrads.Width; j++)

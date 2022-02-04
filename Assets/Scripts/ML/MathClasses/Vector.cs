@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace ML
@@ -14,10 +15,12 @@ namespace ML
             get => _data;
             set
             {   
-                // creating a new scalar array, setting the value and changing the length
                 _data = new Scalar[value.Length];
+                // creating a new scalar array, setting the value and changing the length
                 for (int i = 0; i < value.Length; i++)
+                {
                     _data[i] = new Scalar(value[i]);
+                }        
                 Length = value.Length;
             }
         }
@@ -26,30 +29,14 @@ namespace ML
         #region constructors
 
         // constructor with name and data
-        public Vector(Scalar[]data,string name) : base(1, name)
+        public Vector(Scalar[]data,string name="") : base(1, name)
         {
-            this.Data = data;
-            this.Length = this.Data.Length;
-        }
-        // constructor without name
-        public Vector(Scalar[] data) : base(1)
-        {
-            this.Data = data;
+            Data = data;
             this.Length = this.Data.Length;
         }
 
         // constructor with name and data as  floats
-        public Vector(float[]data,string name) : base(1, name)
-        {
-            this._data = new Scalar[data.Length];
-            for (int i = 0; i < Length; i++)
-            {
-                Data[i] = new Scalar(data[i]);
-            }
-            this.Length = this.Data.Length;
-        }
-        // constructor without name and data as floats
-        public Vector(float[] data) : base(1)
+        public Vector(float[]data,string name="") : base(1, name)
         {
             this._data = new Scalar[data.Length];
             for (int i = 0; i < Length; i++)
@@ -59,7 +46,7 @@ namespace ML
             this.Length = this.Data.Length;
         }
         // constructor without name and data as float to be applied to all elements
-        public Vector(int size, float data) : base(1)
+        public Vector(int size, float data,string name="") : base(1,name)
         {
             this._data = new Scalar[size];
             for (int i = 0; i < Length; i++)
@@ -70,47 +57,32 @@ namespace ML
         }
         
         // constructor with size and name
-        public Vector(int size, string name) : base(1, name)
-        {
-            this.Length = size;
-            this._data = new Scalar[size];
-            for (int i = 0; i < Length; i++)
-            {
-                Data[i] = new Scalar(0);
-            }
-            this.Name = name;
-        }
-        
-        // constructor only size
-        public Vector(int size) : base(1)
+        public Vector(int size, string name="") : base(1, name)
         {
             Length = size;
-            this._data = new Scalar[size];
+            _data = new Scalar[size];
             for (int i = 0; i < Length; i++)
             {
                 _data[i] = new Scalar(0);
             }
         }
         
+        
         // copy constructor
-        public Vector(Vector a) : base(1)
+        public Vector(Vector a) : base(1,a.Name)
         {
             this.Data = a.Data;
-            this.Name = a.Name;
         }
         //copy from tensor constructor
-        public Vector(Tensor a) : base(1)
+        public Vector(Tensor a) : base(1,a.Name)
         {
+            
             // make sure that the tensor a is actually a vector:
+            if (a.Dimension != 1)
+                Debug.Log("oops");
             Assert.AreEqual(a.Dimension, 1);
-            // if it is a vector, copy it.
-            Name = a.Name;
             // copying the data from a to this
-            _data = new Scalar[a.Length];
-            for (int i = 0; i < a.Length; i++)
-            {
-                Data[i] = new Scalar(a[i]);
-            }
+            Data = ((Vector)a).Data;
         }
         
         #endregion
@@ -191,6 +163,40 @@ namespace ML
             ret += "\n";
             return ret;
         }
+
+        public override Tensor ElementWiseFunction(Func<Tensor, Tensor> func)
+        {
+            // creating a copy of this
+            Vector ret = new Vector(this);
+            // applying the function
+            for (int i = 0; i < ret.Length; i++)
+            {
+                ret[i] = func(ret.Data[i]).Data;
+            }
+            return ret;
+        }
+
+        public override Tensor ElementWiseMultiply(Tensor a)
+        {
+            // making sure a is a vector:
+            Assert.AreEqual(a.Dimension,1);
+            // making sure this vector and a have the same size
+            Assert.AreEqual(a.Length, Length);
+            // creating the return vector with the length of a (and of this vector)
+            Vector ret = new Vector(a.Length);
+            //copying the values
+            for (int i = 0; i < ret.Length; i++)
+            {
+                ret[i] = this[i] * a[i];
+            }
+            return ret;
+        }
+
+        public override Tensor Clone()
+        {
+            return new Vector(this);
+        }
+
         #endregion
         
     }
