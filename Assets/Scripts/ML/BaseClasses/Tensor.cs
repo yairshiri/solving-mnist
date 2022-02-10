@@ -53,15 +53,10 @@ public  abstract class Tensor
 
     #region constructors
     // constructor with name
-    protected Tensor(int dimension, string name)
+    protected Tensor(int dimension, string name="")
     {
         _dimension = dimension;
         _name = name;
-    }
-    // constructor without name
-    protected Tensor(int dimension)
-    {
-        _dimension = dimension;
     }
     #endregion
 

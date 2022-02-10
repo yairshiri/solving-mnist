@@ -49,14 +49,10 @@ namespace ML
         
         #region constructors
         // name constructor, empty
-        public Matrix(string name) : base(2, name)
+        public Matrix(string name="") : base(2, name)
         {
+            
         }
-        // empty constructor
-        public Matrix() : base(2)
-        {
-        }
-        
         // constructor with data and name
         public Matrix(Scalar[][] data, string name = "") : base(2, name)
         {
@@ -171,9 +167,6 @@ namespace ML
                 // adding another new line
                 ret += "\n";
             }
-            
-
-
             return ret;
             
         }

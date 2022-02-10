@@ -19,9 +19,9 @@ public class MLMain : MonoBehaviour
     // log every LOG_INTERVAL loops through update
     private int LOG_INTERVAL = 20;
     
-    private float lr = 0.0001f;
+    private float lr = 0.00001f;
     private Vector features = new Vector(1);
-    private Vector labels = new Vector(2);
+    private Vector labels = new Vector(1);
     private Random rand = new Random();
     private float x ;
 
@@ -38,7 +38,7 @@ public class MLMain : MonoBehaviour
     // creating the Categorical crossEntropy loss
     private ML.Loss CE = new Loss( CEFunc,CEDeriv,"categorical crossentropy");
     // creating the Binary Catergorical crossEntropy loss
-    private ML.Loss BCE = new Loss( BCCEFunc,BCCEDeriv,"binary categorical crossentropy");
+    private ML.Loss BCE = new Loss( BCCEFunc,CEDeriv,"binary categorical crossentropy");
     private Network net;
     
     
@@ -47,15 +47,14 @@ public class MLMain : MonoBehaviour
     {
         Layer[] layers=
         {
-            
             new DenseLayer(3,"d1"),
-            new SigmoidLayer(3,"activation 1"),
+            new ReLULayer(3,"activation 1"),
             new DenseLayer(4,"d2"),
-            new SigmoidLayer(4,"activation 2"),
+            new ReLULayer(4,"activation 2"),
             new DenseLayer(labels.Length,"d3"),
-            new SoftMaxLayer(labels.Length,"activation 3")
+            new LinearLayer(labels.Length,"activation 3")
         };
-        net = new Network(layers,lr,1,BCE);
+        net = new Network(layers,lr,1,mse);
         x = (float)rand.NextDouble() * 10;
     }
     #region activations
@@ -120,7 +119,7 @@ public class MLMain : MonoBehaviour
         Vector ret = new Vector(1);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0] += -input.label[i] * (float)Math.Log(input.pred[i],2);
+            ret[0] += -input.label[i] * (float)Math.Log(input.pred[i]);
         }
         return ret;
     }
@@ -144,7 +143,7 @@ public class MLMain : MonoBehaviour
         Debug.Assert(input.pred.Length==input.label.Length);
         Vector ret = new Vector(1);
         //L = -t1*log(s1) - (1-t1)*log(1-s1)
-        ret[0] = -input.label[0] * (float)Math.Log(input.pred[0],2) - input.label[1] * (float)Math.Log(input.pred[1],2);
+        ret[0] = -input.label[0] * (float)Math.Log(input.pred[0]) - input.label[1] * (float)Math.Log(input.pred[1]);
         return ret;
     }
 
@@ -177,10 +176,11 @@ public class MLMain : MonoBehaviour
         features[0] = x;
         //labels[0] = x * 1.5f + 2;
         //labels[0] = x*x + 6*x + 2;
-        labels[0] = 1;
+        labels[0] = x*x*x + 6*x + 2;
+        /*labels[0] = 1;
         if (x > 5)
             labels[0] = 0;
-        labels[1] = 1 - labels[0];
+        labels[1] = 1 - labels[0];*/
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

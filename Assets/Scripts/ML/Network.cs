@@ -11,6 +11,7 @@ namespace ML
         private Layer[] _layers;
         private Loss _loss;
         private float learningRate;
+        private float learningRate_decay = 0.999f;
         public Layer[] Layers
         {
             get => _layers;
@@ -64,10 +65,6 @@ namespace ML
         {
             // getting a prediction from the network
             Vector pred = new Vector( forwards(features));
-            if (pred[0] == 1 || pred[1] == 1)
-            {
-                Debug.Log("oops");
-            }
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
