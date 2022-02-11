@@ -8,18 +8,12 @@ namespace ML
     public class DenseLayer: LearningLayer
     {
         #region variables
-        private float _learningRate = 0.00001f;
+        private static float _learningRate = 0.00001f;
 
         public int InputSize;
         public int OutputSize;
         
-
-        public float LearningRate
-        {
-            get => _learningRate;
-            set => _learningRate = value;
-        }
-
+        
 
         public Vector Bias
         {
@@ -155,13 +149,13 @@ namespace ML
                     {
                         Debug.Log("oops");
                     }
-                    Weights[i][j].Data -= wGrads[i][j] ;
+                    Weights[i][j].Data -= wGrads[i][j] * _learningRate;
                 }
             }
             // applying the bias gradients
             for (int i = 0; i < OutputSize; i++)
             {
-                Bias[i] -= bGrads[i] ;
+                Bias[i] -= bGrads[i] * _learningRate ;
             }
 
         }

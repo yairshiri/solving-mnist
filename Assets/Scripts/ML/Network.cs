@@ -14,6 +14,7 @@ namespace ML
         private Loss _loss;
         private float learningRate;
         private float learningRate_decay = 0.999f;
+        private Optimizer optimizer;
         public Layer[] Layers
         {
             get => _layers;
@@ -30,7 +31,7 @@ namespace ML
 
         #region constructors
 
-        public Network(Layer[] layers,float learningRate,int inputSize, Loss loss)
+        public Network(Layer[] layers,float learningRate,int inputSize, Loss loss,Optimizer optimizer)
         {
             this.learningRate = learningRate; 
             Layers = layers;
@@ -43,6 +44,8 @@ namespace ML
                 Layers[i].Init(shape);
             }
             Loss = loss;
+            this.optimizer = optimizer;
+            Optimizer.GetGrad  = backwards;
         }
 
         #endregion
@@ -51,7 +54,7 @@ namespace ML
         
         
         // a method that runs an input through the networks and gives an output
-        public Tensor forwards(Vector input)
+        public Tensor forwards(Tensor input)
         {
             Tensor ret= input;
             // looping through the layers
@@ -63,19 +66,19 @@ namespace ML
         }
         
         // a method that computes the gradients for a single example 
-        public (Matrix[],Vector[]) backwards(Vector features,Vector labels)
+        public (Tensor[],Tensor[]) backwards(Tensor features,Tensor labels)
         {
             // getting a prediction from the network
             Vector pred = new Vector( forwards(features));
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
-            //Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
+            Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
             
             // a gradients array. the gradients will be applied after getting them. 
             // we put values in the array in the order we use and get them, meaning from the end to the start. 
-            Matrix[] gradients = new Matrix[Layers.Length];
+            Tensor[] gradients = new Tensor[Layers.Length];
             // the gradients to be applied to the bias
-            Vector[] biasGradients = new Vector[Layers.Length];
+            Tensor[] biasGradients = new Tensor[Layers.Length];
             // computing d_loss/d_y
             loss = Loss.FunctionDeriv((pred, labels));
             // running the backwards pass
@@ -83,55 +86,16 @@ namespace ML
             {
                 // getting the loss for the next pass and the gradients for the layer
                 (loss, gradients[i],biasGradients[i]) = Layers[i].Backwards(loss);
-                if (gradients[i] != null)
-                {
-                    gradients[i] *= learningRate;
-                    biasGradients[i] *= learningRate;
-                }
             }
             // returning the gradiants
             return (gradients, biasGradients);
-
         }
         
         // a method that does a backwards pass though a network, with SGD
-        public void backwards(Tensor[] data, Tensor[] labels,int sampleSize)
+        public void backwards(Tensor[] data, Tensor[] labels)
         {
-            // put sampleSize random elements from data and labels into mini batches.
-            Tensor[] data_batch = new Tensor[sampleSize];
-            Tensor[] labels_batch = new Tensor[sampleSize];
-            //put the selected items in the batch arrays
-            int index = (int)Math.Floor(rand.NextDouble() * labels.Length);
-            for (int i = 0; i < sampleSize; i++)
-            {
-                data_batch[i] = data[index];
-                labels_batch[i] = labels[index];
-                // getting another random index
-                index = (int)Math.Floor(rand.NextDouble() * labels.Length);
-            }
-
-            Tensor[][] weightGrads = new Tensor[sampleSize][];
-            Tensor[][] biasGrads= new Tensor[sampleSize][];
-            // getting the gradiants
-            for (int i = 0; i < sampleSize; i++)
-            {
-                (weightGrads[i], biasGrads[i]) = backwards((Vector)data_batch[i],(Vector)labels_batch[i]);
-            }
-            // computing the final grad:
-            Tensor[] finalWeightGrad = new  Matrix[weightGrads[0].Length];
-            Tensor[] finalBiasGrad = new  Vector[biasGrads[0].Length];
-            for (int i = 0; i < finalWeightGrad.Length; i++)
-            {
-                // adding the weight and bias gradiants
-                finalWeightGrad[i] = new Matrix(weightGrads[0][i],true);
-                finalBiasGrad[i] = new Vector(biasGrads[0][i],true);
-                for (int j = 0; j < sampleSize; j++)
-                {
-                    finalWeightGrad[i] += (Matrix)weightGrads[j][i];
-                    finalBiasGrad[i] += (Vector)biasGrads[j][i];
-                }
-            }
-            ApplyGradients(finalWeightGrad,finalBiasGrad);
+            (Tensor[] weightGrads, Tensor[] biasGrads) = optimizer.backwards(data, labels);
+            ApplyGradients(weightGrads,biasGrads);
         }
 
 

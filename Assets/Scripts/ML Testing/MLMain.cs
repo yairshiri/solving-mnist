@@ -46,7 +46,7 @@ public class MLMain : MonoBehaviour
         for (int i = 0; i < sampleSize; i++)
         {
             features[i] = new Vector(1, x,"Data "+i);
-            labels[i] = new Vector(1, x *2 + 1, "Label " + i);
+            labels[i] = new Vector(1, x*x +x *2 + 1, "Label " + i);
             x = (float)rand.NextDouble() * 10;
 
         }
@@ -54,9 +54,12 @@ public class MLMain : MonoBehaviour
         Debug.Log("Done!");
         Layer[] layers=
         {
+            new DenseLayer(3,"relu","d1"),
+            new DenseLayer(4,"relu","d2"),
             new DenseLayer(labels[0].Length,"linear","d3"),
         };
-        net = new Network(layers,lr,1,mse);
+        Optimizer optimizer = new SGD(batchSize);
+        net = new Network(layers,lr,1,mse,optimizer);
 
     }
     #region activations
@@ -148,7 +151,7 @@ public class MLMain : MonoBehaviour
     void Update()
     {
         x = (float)rand.NextDouble() * 10;
-        net.backwards(features,labels,batchSize);
+        net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)
         {
