@@ -26,12 +26,6 @@ public class MLMain : MonoBehaviour
     private Random rand = new Random();
     private float x ;
 
-    // creating the relu activation func 
-    private ML.Activation relu = new Activation( reluFunc,reluDeriv,"relu");
-    // creating the relu activation func 
-    private ML.Activation sigmoid = new Activation( sigFunc,sigDeriv,"sigmoid");
-    // creating the linear activation func 
-    private ML.Activation linear = new Activation( linearFunc,linearDeriv,"linear");
     // creating the softmax activation func 
     //private ML.Function<Vector,Vector> softmax = new Function<Vector,Vector>( softmaxFunc,softmaxDeriv,"softmax");
     // creating the mse loss
@@ -52,7 +46,7 @@ public class MLMain : MonoBehaviour
         for (int i = 0; i < sampleSize; i++)
         {
             features[i] = new Vector(1, x,"Data "+i);
-            labels[i] = new Vector(1, x * x * x + 6 * x + 2, "Label " + i);
+            labels[i] = new Vector(1, x *2 + 1, "Label " + i);
             x = (float)rand.NextDouble() * 10;
 
         }
@@ -60,44 +54,12 @@ public class MLMain : MonoBehaviour
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(3,"d1"),
-            new ReLULayer(3,"activation 1"),
-            new DenseLayer(4,"d2"),
-            new ReLULayer(4,"activation 2"),
-            new DenseLayer(labels[0].Length,"d3"),
-            new LinearLayer(labels[0].Length,"activation 3")
+            new DenseLayer(labels[0].Length,"linear","d3"),
         };
         net = new Network(layers,lr,1,mse);
 
     }
     #region activations
-    private static float reluFunc(float x)
-    {
-        return Math.Max(x, 0);
-    }
-
-    private static float sigFunc(float x)
-    {
-        return  1.0f / (float)(1 + Math.Exp(-x));
-    }
-    private static float sigDeriv(float x)
-    {
-        return sigFunc(x) * (1-sigFunc(x));
-    }
-
-    private static float reluDeriv(float x)
-    {
-        return Math.Max(x, 0)/Math.Abs(x);
-    }
-    private static float linearFunc(float x)
-    {
-        return x;
-    }
-
-    private static float linearDeriv(float x)
-    {
-        return 1;
-    }
     
     private static Tensor mseFunc((Tensor pred, Tensor label) input)
     {

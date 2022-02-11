@@ -45,22 +45,20 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int shape,string name) : base(new []{shape}, name)
+        public DenseLayer(int shape,ActionLayer activation,string name="") : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
             Name = name;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
-        // constructor without name
-        public DenseLayer(int shape ) : base(new []{shape})
+        public DenseLayer(int shape,string activation,string name="") : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
+            Name = name;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
-        
-
         #endregion
 
         #region methods
@@ -95,7 +93,7 @@ namespace ML
         }
         
         // feedforward of a classical Dense layer
-        public override Tensor Forwards(Tensor input)
+        protected override Tensor fPass(Tensor input)
         {
             // saving the input for the backwards pass
             NeuronActivations = new Vector(input);
@@ -111,27 +109,10 @@ namespace ML
                 ret[i] += Bias[i];
             }
             return ret;
-        }        
-        // feedforward of a classical Dense layer, without the activation
-        public Vector ForwardsRetNet(Vector input)
-        {
-            Vector ret = new Vector(OutputSize);
-            for (int i = 0; i < OutputSize; i++)
-            {
-                // summing the products:
-                for (int j = 0; j < InputSize; j++)
-                {
-                    ret[i] += Weights[i][j] * input[j];
-                }
-                // adding the bias
-                ret[i] += Bias[i];
-            }
-            return ret;
         }
-        
-        
+
         // backwards pass of a classical Dense layer
-        public override (Tensor, Matrix, Vector) Backwards(Tensor loss)
+        protected override (Tensor, Matrix, Vector) bPass(Tensor loss)
         {
             // verify that loss has the appropriate shape
             Assert.AreEqual(loss.Length,OutputSize);
