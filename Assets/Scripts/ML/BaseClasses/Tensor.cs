@@ -90,7 +90,6 @@ public  abstract class Tensor
         return ret;
     }*/
 
-    
     // square brackets operator
     public virtual float this[int i]
     {

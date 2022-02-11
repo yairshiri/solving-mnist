@@ -9,7 +9,8 @@ using Random = System.Random;
 
 public class MLMain : MonoBehaviour
 {
-    private int sampleSize = 100000;
+    private static int sampleSize = 100000;
+    private static int batchSize = 100;
 
     private float noise = 0.00001f;
     
@@ -20,8 +21,8 @@ public class MLMain : MonoBehaviour
     private int LOG_INTERVAL = 20;
     
     private float lr = 0.00001f;
-    private Vector features = new Vector(1);
-    private Vector labels = new Vector(1);
+    private Tensor[] features = new Tensor[sampleSize];
+    private Tensor[] labels = new Tensor[sampleSize];
     private Random rand = new Random();
     private float x ;
 
@@ -45,17 +46,29 @@ public class MLMain : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        x = (float)rand.NextDouble() * 10;
+        // generating the data
+        Debug.Log("Generating data...");
+        for (int i = 0; i < sampleSize; i++)
+        {
+            features[i] = new Vector(1, x,"Data "+i);
+            labels[i] = new Vector(1, x * x * x + 6 * x + 2, "Label " + i);
+            x = (float)rand.NextDouble() * 10;
+
+        }
+
+        Debug.Log("Done!");
         Layer[] layers=
         {
             new DenseLayer(3,"d1"),
             new ReLULayer(3,"activation 1"),
             new DenseLayer(4,"d2"),
             new ReLULayer(4,"activation 2"),
-            new DenseLayer(labels.Length,"d3"),
-            new LinearLayer(labels.Length,"activation 3")
+            new DenseLayer(labels[0].Length,"d3"),
+            new LinearLayer(labels[0].Length,"activation 3")
         };
         net = new Network(layers,lr,1,mse);
-        x = (float)rand.NextDouble() * 10;
+
     }
     #region activations
     private static float reluFunc(float x)
@@ -173,15 +186,7 @@ public class MLMain : MonoBehaviour
     void Update()
     {
         x = (float)rand.NextDouble() * 10;
-        features[0] = x;
-        //labels[0] = x * 1.5f + 2;
-        //labels[0] = x*x + 6*x + 2;
-        labels[0] = x*x*x + 6*x + 2;
-        /*labels[0] = 1;
-        if (x > 5)
-            labels[0] = 0;
-        labels[1] = 1 - labels[0];*/
-        net.backwards(features,labels);
+        net.backwards(features,labels,batchSize);
         counter++;
         if (counter % LOG_INTERVAL == 0)
         {

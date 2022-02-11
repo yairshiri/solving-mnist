@@ -84,11 +84,33 @@ namespace ML
         }
         
         // copy from tensor 
-        public Matrix(Tensor data) :base(2,data.Name)
+        public Matrix(Tensor data,bool copySize = false) :base(2,data.Name)
         {
             // make sure data is a Matrix
             Assert.AreEqual(data.Dimension, 2);
-            Data = ((Matrix)data).Data;
+            // if we copy the data aswell as the sizes:
+            if(copySize == false)
+                Data = ((Matrix)data).Data;
+            else
+            {
+                // if we only copy the sizes
+                Height = ((Matrix)data).Height;
+                Width = ((Matrix)data).Width;
+                Length = ((Matrix)data).Length;
+                // init the data
+                // creating the data matrix
+                _data = new Scalar[Height][];
+                // setting the data to value
+                for (int i = 0; i < Height; i++)
+                {
+                    _data[i] = new Scalar[Width];
+                    for (int j = 0; j < Width; j++)
+                    {
+                        _data[i][j] = new Scalar(0);
+                    }
+                }
+
+            }
         }
 
         #endregion
@@ -136,6 +158,54 @@ namespace ML
         {
             return b*a;
         }
+
+        public static Matrix operator +(Matrix a, Matrix b)
+        {
+            // copying the first matrix
+            Matrix ret = new Matrix(a);
+            // adding the values of b to the copy of a
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j] += b[i][j];
+                }
+            }
+            return ret;
+        }
+        public static Matrix operator +(Matrix a, Tensor b)
+        {
+            // make sure b is a matrix
+            Assert.AreEqual(a.Dimension, b.Dimension);
+            // copying the tensor
+            Matrix ret = new Matrix(b);
+            // adding the values of the matrix to the copy of the tensor
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j] += a[i][j];
+                }
+            }
+            return ret;
+        }
+        public static Matrix operator +(Tensor a, Matrix b)
+        {
+            // make sure a is a matrix
+            Assert.AreEqual(a.Dimension, b.Dimension);
+            // copying the tensor
+            Matrix ret = new Matrix(a);
+            // adding the values of the matrix to the copy of the tensor
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j] += b[i][j];
+                }
+            }
+            return ret;
+        }
+        
         public new Scalar[] this[int i]
         {
             get => _data[i];

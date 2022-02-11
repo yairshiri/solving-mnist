@@ -49,9 +49,9 @@ namespace ML
         
         #region operators
 
-        public static float operator +(Scalar a)
+        public static Scalar operator +(Scalar a,Scalar b)
         {
-            return a.Data;
+            return new Scalar(a.Data + b.Data);
         }
         public static float operator +(Scalar a,float b)
         {

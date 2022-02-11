@@ -74,15 +74,26 @@ namespace ML
             this.Data = a.Data;
         }
         //copy from tensor constructor
-        public Vector(Tensor a) : base(1,a.Name)
+        public Vector(Tensor a,bool copySize = false) : base(1,a.Name)
         {
             
             // make sure that the tensor a is actually a vector:
-            if (a.Dimension != 1)
-                Debug.Log("oops");
             Assert.AreEqual(a.Dimension, 1);
             // copying the data from a to this
-            Data = ((Vector)a).Data;
+            if (copySize == false)
+            {
+                Data = ((Vector)a).Data;
+            }
+            else
+            {
+                Length = a.Length;
+                _data = new Scalar[Length];
+                for (int i = 0; i < Length; i++)
+                {
+                    _data[i] = new Scalar(0);
+                }
+
+            }
         }
         
         #endregion
@@ -124,6 +135,25 @@ namespace ML
             }
 
             return ret;
+        }
+
+        public static Vector operator +(Vector a, Tensor b)
+        {
+            //make sure b is a vector
+            Assert.AreEqual(a.Dimension,b.Dimension);
+            Vector ret = new Vector(b);
+            for (int i = 0; i < a.Length; i++)
+            {
+                ret[i] += a[i];
+            }
+
+            return ret;
+
+        }
+
+        public static Vector operator +(Tensor a, Vector b)
+        {
+            return b + a;
         }
         
         // square brackets operator
