@@ -227,6 +227,11 @@ namespace ML
             return new Vector(this);
         }
 
+        public override Tensor Transpose()
+        {
+            return this.Clone();
+        }
+
         #endregion
         
     }

@@ -102,6 +102,11 @@ namespace ML
             return new Scalar(this);
         }
 
+        public override Tensor Transpose()
+        {
+            return this.Clone();
+        }
+
         #endregion
     }
 }

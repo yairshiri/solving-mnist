@@ -122,7 +122,7 @@ namespace ML
             // matrices need to be of size MxK,KxN
             Assert.AreEqual(a.Height,b.Width);
             // creating the ret value
-            Matrix ret = new Matrix(a.Width,b.Height,0);
+            Matrix ret = new Matrix(a.Width,b.Height);
             // looping vertically on a
             for (int i = 0; i < a.Width; i++)
             {   
@@ -282,6 +282,21 @@ namespace ML
         {
             return new Matrix(this);
         }
+
+        public override Tensor Transpose()
+        {
+            // rotate the matrix by 90 degrees
+            Matrix ret = new Matrix(this.Width, this.Height);
+            for (int i = 0; i < Height; i++)
+            {
+                for (int j = 0; j < Width; j++)
+                {
+                    ret[j][i].Data = this[i][j].Data;
+                }        
+            }
+            return ret;
+        }
+
 
         #endregion
     }

@@ -72,6 +72,8 @@ namespace ML
                     break;
                 case "softmax": ret = new SoftMaxLayer(outputShape);
                     break;
+                case "softrelu":ret = new SoftReLULayer(outputShape);
+                    break;
                 default:
                     throw new Exception("Activation name is invalid!!!");
             }

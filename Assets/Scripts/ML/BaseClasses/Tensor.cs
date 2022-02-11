@@ -118,6 +118,10 @@ public  abstract class Tensor
     public abstract Tensor ElementWiseMultiply(Tensor a);
     
     public abstract Tensor Clone();
+
+    public abstract Tensor Transpose();
+
+
     #endregion
 
 }
