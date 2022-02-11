@@ -48,7 +48,7 @@ namespace ML
             return ret;
         }
 
-        public override (Tensor, Matrix, Vector) Backwards(Tensor loss)
+        public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)
         {
 
             Tensor result;
@@ -57,10 +57,10 @@ namespace ML
             else
                 result = action.FunctionDeriv(NeuronActivations);
             // need to multiply loss by result
-            return (result.Transpose().ElementWiseMultiply(loss), null, null);
+            return (Tensor.MatrixMult(loss,result), null, null);
         }
 
-        public override void ApplyGradients(Matrix wGrads, Vector bGrads)
+        public override void ApplyGradients(Tensor wGrads, Tensor bGrads)
         {
             // no learnable parameters to learn so nothing to see here -_-
         }
@@ -90,13 +90,13 @@ namespace ML
         private static Tensor SigmoidFunc(Tensor x)
         {
             //the sigmoid function
-            return new Scalar(1 / (1 + (float)Math.Exp(-x.Data)));
+            return new Tensor(1 / (1 + (float)Math.Exp(-x.Value)));
         }
 
         private static Tensor SigmoidDeriv(Tensor x)
         {
             //the sigmoid derivative
-            return new Scalar(SigmoidFunc(x).Data * (1 - SigmoidFunc(x).Data));
+            return new Tensor(SigmoidFunc(x).Value * (1 - SigmoidFunc(x).Value));
         }
 
         #endregion Methods
@@ -124,29 +124,29 @@ namespace ML
         private static Tensor softmaxFunc(Tensor x)
         {
             // initializing a new vector with the length of x.
-            Vector ret = new Vector(x.Length);
-            float sum = 0;
+            Tensor ret = new Tensor(x.Length);
+            double sum = 0;
             // finding the max value in x
-            float max = x[0];
+            double max = x[0].Value;
             for (int i = 1; i < ret.Length; i++)
-                if (x[i] > max)
-                    max = x[i];
+                if (x[i].Value > max)
+                    max = x[i].Value;
             // every element is e to the power of the elements devided by the sum of e to the power of all the elements.
             // implementation from https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
             for (int i = 0; i < ret.Length; i++)
             {
                 // x = e^x
-                ret[i] = (float)Math.Exp(x[i] - max);
+                ret[i] = new Tensor(Math.Exp(x[i].Value - max));
                 // adding to the sum
-                sum += ret[i];
+                sum += ret[i].Value;
             }
 
             // deviding by the sum
             for (int i = 0; i < ret.Length; i++)
             {
-                ret[i] /= sum;
+                ret[i].Value /= sum;
                 //we do this because we dont want to have 0s (for backprop), so we set a lower bound (NOISE)
-                ret[i] = Math.Max(ret[i], NOISE);
+                ret[i].Value = Math.Max(ret[i].Value, NOISE);// check if the recursive call works!!
             }
 
             return ret;
@@ -156,7 +156,7 @@ namespace ML
         private Tensor softmaxDeriv(Tensor x)
         {
             //copying x and getting the softmax values for the deriv
-            Vector softmaxes = (Vector)softmaxFunc((Vector)_neuronActivations);
+            Tensor softmaxes = softmaxFunc(_neuronActivations);
             Matrix ret = new Matrix(x.Length, x.Length);
             int delta;
             // i is the input index, j is the output index
@@ -169,11 +169,11 @@ namespace ML
                         delta = 1;
                     else
                         delta = 0;
-                    ret[i][j].Data= softmaxes[i] * (delta - softmaxes[j]);
+                    ret[i][j].Value = softmaxes[i].Value * (delta - softmaxes[j].Value);
                 }
             }
 
-            return ret;
+            return ret;// check for matrix multiplication working
         }
 
 
@@ -204,7 +204,7 @@ namespace ML
 
         private static Tensor reluFunc(Tensor x)
         {
-            return new Scalar(Math.Max(x.Data, 0));
+            return new Tensor(Math.Max(x.Value, 0));
         }
 
         private static Tensor reluDeriv(Tensor x)
@@ -213,9 +213,9 @@ namespace ML
             // the relu derivative: 
             //{ x > 0 : 1}
             //{ x <= 0: 0}
-            if (x.Data > 0)
+            if (x.Value > 0)
                 ret = 1;
-            return new Scalar(ret);
+            return new Tensor(ret);
         }
 
         #endregion Methods
@@ -243,12 +243,12 @@ namespace ML
 
         private static Tensor linearFunc(Tensor x)
         {
-            return new Scalar(x.Data);
+            return new Tensor(x);
         }
 
         private static Tensor linearDeriv(Tensor x)
         {
-            return new Scalar(1);
+            return new Tensor(1.0);
         }
 
         #endregion Methods
@@ -273,12 +273,12 @@ namespace ML
 
         private static Tensor SoftReLUFunc(Tensor x)
         {
-            return new Scalar((float)Math.Log(1+Math.Exp(x.Data)));
+            return new Tensor(Math.Log(1+Math.Exp(x.Value)));
         }
 
         private static Tensor SoftReLUDeriv(Tensor x)
         {
-            return new Scalar(1 / (1 + (float)Math.Exp(-x.Data)));
+            return new Tensor(1 / (1 + Math.Exp(-x.Value)));
         }
 
         #endregion Methods

@@ -41,17 +41,17 @@ namespace ML
                 (weightGrads[i], biasGrads[i]) = GetGrad(dataBatch[i],labelsBatch[i]);
             }
             // computing the final grad:
-            Tensor[] finalWeightGrad = new  Matrix[weightGrads[0].Length];
-            Tensor[] finalBiasGrad = new  Vector[biasGrads[0].Length];
+            Tensor[] finalWeightGrad = new  Tensor[weightGrads[0].Length];
+            Tensor[] finalBiasGrad = new  Tensor[biasGrads[0].Length];
             for (int i = 0; i < finalWeightGrad.Length; i++)
             {
                 // adding the weight and bias gradiants
-                finalWeightGrad[i] = new Matrix(weightGrads[0][i],true);
-                finalBiasGrad[i] = new Vector(biasGrads[0][i],true);
+                finalWeightGrad[i] = new Tensor(weightGrads[0][i].Shape);
+                finalBiasGrad[i] = new Tensor(biasGrads[0][i].Shape);
                 for (int j = 0; j < batchSize; j++)
                 {
-                    finalWeightGrad[i] += (Matrix)weightGrads[j][i];
-                    finalBiasGrad[i] += (Vector)biasGrads[j][i];
+                    finalWeightGrad[i] += weightGrads[j][i];
+                    finalBiasGrad[i] += biasGrads[j][i];
                 }
             }
             // returning the final gradiants

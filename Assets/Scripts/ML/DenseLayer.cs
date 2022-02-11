@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Random = System.Random;
@@ -15,22 +17,20 @@ namespace ML
         
         
 
-        public Vector Bias
+        public Tensor Bias
         {
             get => _bias;
             set => _bias = value;
         }
 
-        public new Vector NeuronActivations
+        public new Tensor NeuronActivations
         {
             get => _neuronActivations;
             set
             {
-                // checking that value is a vector
-                Assert.AreEqual(value.Dimension,1);
-                // need to check that the size of the neuron activations vector is good
-                Assert.AreEqual(InputSize,value.Length);
-                _neuronActivations = new Vector(value);
+                // checking that value is a vector and has the same shape as its supposed to be
+                Assert.IsTrue(Enumerable.SequenceEqual(inputShape,value.Shape));
+                _neuronActivations = value.Clone();
             }
         }
         #endregion
@@ -62,10 +62,10 @@ namespace ML
             //initiating the sizes and the vectors
             InputSize = inputShape[0];
             base.Init(inputShape);
-            NeuronActivations = new Vector(InputSize);
-            Weights = new Matrix(OutputSize, InputSize, 0);
+            _neuronActivations = new Tensor(InputSize,Name + " neuron activations");
+            _weights = new Matrix(OutputSize, InputSize,name:Name+" weights");
             // initiating the bias with a 0.001 value, will init with other values later (like we generate weights)
-            Bias = new Vector(OutputSize,"bias");
+            Bias = new Tensor(size:OutputSize,name:Name+" bias");
             //initiating the weight values with the xavier method
             var rand = new Random();
             float lim =(float)Math.Sqrt(6.0/ InputSize + OutputSize);
@@ -75,14 +75,14 @@ namespace ML
                 for (int j = 0; j < Weights.Width; j++)
                 {
                     // generating a new value (float) between -lim and lim
-                    Weights[i][j].Data = ((float)rand.NextDouble()*2*lim)-lim;
+                    Weights[i][j].Value = rand.NextDouble()*2*lim-lim;
                 }
             }
             // generating the gradients
             for (int i = 0; i < Bias.Length; i++)
             {
                 // we generate the bias like we generate weights
-                Bias[i] = ((float)rand.NextDouble()*2*lim)-lim;
+                Bias[i].Value = rand.NextDouble()*2*lim-lim;
             }
         }
         
@@ -90,8 +90,8 @@ namespace ML
         protected override Tensor fPass(Tensor input)
         {
             // saving the input for the backwards pass
-            NeuronActivations = new Vector(input);
-            Vector ret = new Vector(OutputSize);
+            _neuronActivations = new Tensor(input);
+            Tensor ret = new Tensor(OutputSize);
             for (int i = 0; i < OutputSize; i++)
             {
                 // summing the products:
@@ -106,16 +106,16 @@ namespace ML
         }
 
         // backwards pass of a classical Dense layer
-        protected override (Tensor, Matrix, Vector) bPass(Tensor loss)
+        protected override (Tensor, Tensor, Tensor) bPass(Tensor loss)
         {
             // verify that loss has the appropriate shape
             Assert.AreEqual(loss.Length,OutputSize);
             // creating the weight gradients vector
             Matrix wGrads = new Matrix(OutputSize,InputSize,0);
             // creating the input gradients vector
-            Vector aGrads = new Vector(InputSize);
+            Tensor aGrads = new Tensor(InputSize);
             // the vector for the bias
-            Vector bGrads = new Vector(OutputSize);
+            Tensor bGrads = new Tensor(OutputSize);
             // getting the gradients for the weights and the bias
             //looping through the output neurons
             for (int i = 0; i < wGrads.Height; i++)
@@ -123,8 +123,8 @@ namespace ML
                 //looping through the input neurons
                 for (int j = 0; j < wGrads.Width; j++)
                 {
-                    wGrads[i][j].Data += loss[i] * NeuronActivations[j];
-                    aGrads[j] += loss[i] * Weights[i][j].Data;
+                    wGrads[i][j] += loss[i] * NeuronActivations[j];
+                    aGrads[j] += loss[i] * Weights[i][j];// check multiplication works
                 }
                 //bgrads calculation
                 bGrads[i] = loss[i];
@@ -137,25 +137,25 @@ namespace ML
         }
 
         // the way we apply gradients in a fully connected layer, singular
-        public override void ApplyGradients(Matrix wGrads,Vector bGrads)
+        public override void ApplyGradients(Tensor wGrads,Tensor bGrads)
         {
             // we apply WGrads (weight -= grad)
-            for (int i = 0; i < wGrads.Height; i++)
+            for (int i = 0; i < wGrads.Shape[0]; i++)
             {
-                for (int j = 0; j < wGrads.Width; j++)
+                for (int j = 0; j < wGrads.Shape[1]; j++)
                 {
                     // checking for wrong size gradients
-                    if (i >= Weights.Height || j >= Weights.Width)
+                    if (i >= Weights.Shape[0] || j >= Weights.Shape[1])
                     {
                         Debug.Log("oops");
                     }
-                    Weights[i][j].Data -= wGrads[i][j] * _learningRate;
+                    Weights[i][j].Value -= wGrads[i][j].Value * _learningRate;
                 }
             }
             // applying the bias gradients
             for (int i = 0; i < OutputSize; i++)
             {
-                Bias[i] -= bGrads[i] * _learningRate ;
+                Bias[i].Value -= bGrads[i].Value * _learningRate ;
             }
 
         }

@@ -7,21 +7,21 @@ namespace ML
     {
         #region Fields
         // every type of layer has weights
-        private Matrix _weights;
+        protected Tensor _weights;
         
         // this remembers the last activations. Every layer needs to implemants this in a deferent way
-        protected new Vector _neuronActivations;
+        protected new Tensor _neuronActivations;
 
         private ActionLayer _activation;
         
         // the bias vector. it's length is the length of the output.
-        protected Vector _bias;
+        protected Tensor _bias;
 
         // using the copying constructor 
-        public Matrix Weights
+        public Tensor Weights
         {
             get => _weights;
-            set => _weights = new Matrix(value);
+            set => _weights = new Tensor(value);
         }
 
         protected ActionLayer Activation
@@ -51,7 +51,7 @@ namespace ML
             return output;
         }
 
-        public override (Tensor, Matrix, Vector) Backwards(Tensor loss)
+        public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)
         {   
             // item1 is the loss
             return bPass(Activation.Backwards(loss).Item1);
@@ -87,7 +87,7 @@ namespace ML
 
 
         protected abstract Tensor fPass(Tensor input);
-        protected abstract (Tensor, Matrix, Vector)  bPass(Tensor input);
+        protected abstract (Tensor, Tensor, Tensor)  bPass(Tensor input);
 
         #endregion Methods
 

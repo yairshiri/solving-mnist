@@ -48,7 +48,7 @@ namespace ML
         public abstract Tensor Forwards(Tensor input);
         // return type is inputType,Matrix,vector because we return the gradients with respects to the inputs(inputtype) and the gradients to be applied
         // to the weights, which are metrices. Vector is for the bias
-        public abstract (Tensor,Matrix,Vector) Backwards(Tensor loss);
+        public abstract (Tensor,Tensor,Tensor) Backwards(Tensor loss);
         
         // same deal as with the tensors:
         // all layers may have names, so instead of implementing this (the name adding) for every claas we implement here
@@ -64,7 +64,7 @@ namespace ML
         
         
         // wGrads is the gradients for the weights, and bGrads is the gradients for the bias 
-        public abstract void ApplyGradients(Matrix wGrads,Vector bGrads);
+        public abstract void ApplyGradients(Tensor wGrads,Tensor bGrads);
         #endregion
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using ML;
 using UnityEngine;
 using Network = ML.Network;
-using Vector = ML.Vector;
 using Random = System.Random;
 
 public class MLMain : MonoBehaviour
@@ -27,7 +26,7 @@ public class MLMain : MonoBehaviour
     private float x ;
 
     // creating the softmax activation func 
-    //private ML.Function<Vector,Vector> softmax = new Function<Vector,Vector>( softmaxFunc,softmaxDeriv,"softmax");
+    //private ML.Function<Tensor,Tensor> softmax = new Function<Tensor,Tensor>( softmaxFunc,softmaxDeriv,"softmax");
     // creating the mse loss
     private ML.Loss mse = new Loss( mseFunc,mseDeriv,"mse");
     // creating the Categorical crossEntropy loss
@@ -46,12 +45,12 @@ public class MLMain : MonoBehaviour
         
         for (int i = 0; i < sampleSize; i++)
         {
-            features[i] = new Vector(1, x,"Data "+i);
-            labels[i] = new Vector(2,  "Label " + i);
-            labels[i][0] = 0;
+            features[i] = new Tensor(1, x,"Data "+i);
+            labels[i] = new Tensor(1,x*2+2,  "Label " + i);
+            /*labels[i][0].Value = 0;
             if (x > 5)
-                labels[i][0] = 1;
-            labels[i][1] = 1 - labels[i][0];
+                labels[i][0].Value = 1;
+            labels[i][1].Value = 1 - labels[i][0].Value;*/
             x = (float)rand.NextDouble() * 10;
 
         }
@@ -61,10 +60,10 @@ public class MLMain : MonoBehaviour
         {
             new DenseLayer(3,"softrelu","d1"),
             new DenseLayer(4,"softrelu","d2"),
-            new DenseLayer(labels[0].Length,"softmax","d3"),
+            new DenseLayer(labels[0].Length,"linear","d3"),
         };
         Optimizer optimizer = new SGD(batchSize);
-        net = new Network(layers,lr,1,BCE,optimizer);
+        net = new Network(layers,lr,1,mse,optimizer);
 
     }
     #region activations
@@ -73,36 +72,36 @@ public class MLMain : MonoBehaviour
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Vector ret = new Vector(1);
+        Tensor ret = new Tensor(1);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0] += (float)Math.Pow(input.pred[i] - input.label[i],2);
+            ret[0].Value += Math.Pow(input.pred[i].Value - input.label[i].Value,2);
         }
 
         return ret;
     }
 
-    private static Vector mseDeriv((Tensor pred, Tensor label) input)
+    private static Tensor mseDeriv((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Vector ret = new Vector(input.pred.Length);
+        Tensor ret = new Tensor(input.pred.Length);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = 2*(input.pred[i] - input.label[i]);
+            ret[i].Value = 2*(input.pred[i].Value - input.label[i].Value);
         }
         return ret;
 
     }
 
-    private static Vector CEFunc((Tensor pred, Tensor label) input)
+    private static Tensor CEFunc((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Vector ret = new Vector(1);
+        Tensor ret = new Tensor(1);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0] += -input.label[i] * (float)Math.Log(input.pred[i]);
+            ret[0].Value += -input.label[i].Value * (float)Math.Log(input.pred[i].Value);
         }
         return ret;
     }
@@ -112,21 +111,21 @@ public class MLMain : MonoBehaviour
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
         
-        Vector ret = new Vector(input.pred.Length);
+        Tensor ret = new Tensor(input.pred.Length);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = -(input.label[i] / input.pred[i]);
+            ret[i].Value = -(input.label[i].Value / input.pred[i].Value);
         }
         return ret;
 
     }
-    private static Vector BCCEFunc((Tensor pred, Tensor label) input)
+    private static Tensor BCCEFunc((Tensor pred, Tensor label) input)
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Vector ret = new Vector(1);
+        Tensor ret = new Tensor(1);
         //L = -t1*log(s1) - (1-t1)*log(1-s1)
-        ret[0] = -input.label[0] * (float)Math.Log(input.pred[0]) - input.label[1] * (float)Math.Log(input.pred[1]);
+        ret[0].Value = -input.label[0].Value * (float)Math.Log(input.pred[0].Value) - input.label[1].Value * (float)Math.Log(input.pred[1].Value);
         return ret;
     }
 
@@ -134,10 +133,10 @@ public class MLMain : MonoBehaviour
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Vector ret = new Vector(input.pred.Length);
+        Tensor ret = new Tensor(input.pred.Length);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[i] = -(input.label[i] / input.pred[i]) + (1 - input.label[i])/(1-input.pred[i]);
+            ret[i].Value = -(input.label[i].Value / input.pred[i].Value) + (1 - input.label[i].Value)/(1-input.pred[i].Value);
         }
         return ret;
 

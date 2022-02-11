@@ -69,7 +69,7 @@ namespace ML
         public (Tensor[],Tensor[]) backwards(Tensor features,Tensor labels)
         {
             // getting a prediction from the network
-            Vector pred = new Vector( forwards(features));
+            Tensor pred = new Tensor( forwards(features));
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
@@ -104,7 +104,7 @@ namespace ML
             //applying the gradients
             for (int i = Layers.Length-1; i >= 0; i--)
             {
-                Layers[i].ApplyGradients((Matrix)weightGrads[i],(Vector)biasGrads[i]);
+                Layers[i].ApplyGradients(weightGrads[i],biasGrads[i]);
             }
 
         }

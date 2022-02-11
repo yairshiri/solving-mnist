@@ -7,31 +7,17 @@ namespace ML
     {
         #region variables
 
-        private new Scalar[][] _data;
+        
 
-
-        public int Height
-        {
-            get => Shape[0];
-        }
-        public int Width
-        {
-            get => Shape[1];
-        }
-
-        public new Scalar[][] Data
+        public new Tensor[] Data
         {
             get => _data;
             set
             {
-                _data = new Scalar[value.Length][];
+                _data = new Tensor[value.Length];
                 for (int i = 0; i < _data.Length; i++)
                 {
-                    _data[i] = new Scalar[value[i].Length];
-                    for (int j = 0; j < value[0].Length; j++)
-                    {
-                        _data[i][j] = new Scalar(value[i][j]);
-                    }
+                    _data[i] = new Tensor(value[i]);
                 }
                 // setting the new shape
                 Shape = new []{value.Length,value[0].Length};
@@ -42,62 +28,20 @@ namespace ML
         #endregion
         
         #region constructors
-        // name constructor, empty
-        
-        // constructor with data and name
-        public Matrix(Scalar[][] data, string name = "") : base(new []{data.Length,data[0].Length}, name)
-        {
-            // setting the data. we created the setter above
-            Data = data;
-        }
         // copy constructor
-        public Matrix(Matrix a) : base(a.Shape, a.Name)
+        public Matrix(Matrix a) : base(a)
         {
-            Data = a.Data;
         }
         // init data to all value
-        public Matrix(int height, int width,float value = 0) : base(new []{height,width})
+        public Matrix(int height, int width,double value = 0,string name="") : base(new []{height,width},defaultValue:value,name:name)
         {
-            // creating the data matrix
-            _data = new Scalar[Height][];
-            // setting the data to value
-            for (int i = 0; i < Height; i++)
-            {
-                _data[i] = new Scalar[Width];
-                for (int j = 0; j < Width; j++)
-                {
-                    _data[i][j] = new Scalar(value);
-                }
-            }
         }
         
         // copy from tensor 
-        public Matrix(Tensor data,bool copySize = false) :base(data.Shape,data.Name)
+        public Matrix(Tensor data) :base(data)
         {
-            // make sure data is a Matrix
-            Assert.AreEqual(data.Dimension, 2);
-            // if we copy the data aswell as the sizes:
-            if(copySize == false)
-                Data = ((Matrix)data).Data;
-            else
-            {
-                // if we only copy the sizes
-                // init the data
-                // creating the data matrix
-                _data = new Scalar[Height][];
-                // setting the data to value
-                for (int i = 0; i < Height; i++)
-                {
-                    _data[i] = new Scalar[Width];
-                    for (int j = 0; j < Width; j++)
-                    {
-                        _data[i][j] = new Scalar(0);
-                    }
-                }
-
-            }
         }
-
+        
         #endregion
 
         #region operators
@@ -105,20 +49,20 @@ namespace ML
         public static Matrix operator *(Matrix a, Matrix b)
         {
             // matrices need to be of size MxK,KxN
-            Assert.AreEqual(a.Height,b.Width);
+            Assert.AreEqual(a.Width,b.Height);
             // creating the ret value
-            Matrix ret = new Matrix(a.Width,b.Height);
+            Matrix ret = new Matrix(a.Height,b.Width);
             // looping vertically on a
-            for (int i = 0; i < a.Width; i++)
+            for (int i = 0; i < a.Height; i++)
             {   
                 // horizontally with b
-                for (int j = 0; j < b.Height; j++)
+                for (int j = 0; j < b.Width; j++)
                 {   
                     // vertically with b and horizontally with a. limit of k can either be a.width or b.hieght
                     // since they are equal
-                    for (int k = 0; k < a.Height; k++)
+                    for (int k = 0; k < a.Width; k++)
                     {
-                        ret[i][j].Data = a[i][k] * b[k][j];
+                        ret[i][j].Value += (a[i][k] * b[k][j]).Value;
                     }
                 }
             }
@@ -133,7 +77,7 @@ namespace ML
             {
                 for (int j = 0; j < a.Width; j++)
                 {
-                    ret[i][j] = new Scalar(ret[i][j] * b);
+                    ret[i][j].Value *= b;
                 }
             }
             return ret;
@@ -146,6 +90,8 @@ namespace ML
 
         public static Matrix operator +(Matrix a, Matrix b)
         {
+            //making sure they have the same size
+            Assert.AreEqual(a.Shape, b.Shape);
             // copying the first matrix
             Matrix ret = new Matrix(a);
             // adding the values of b to the copy of a
@@ -191,17 +137,6 @@ namespace ML
             return ret;
         }
         
-        public new Scalar[] this[int i]
-        {
-            get => _data[i];
-        }
-
-        public  float this[int i, int j]
-        {
-            get => Data[i][j].Data;
-            set => Data[i][j] = new Scalar(value);
-        }
-        
         #endregion
 
         #region methods
@@ -226,49 +161,14 @@ namespace ML
             
         }
 
-        public override Tensor ElementWiseFunction(Func<Tensor, Tensor> func)
-        {
-            // creating a copy of this
-            Matrix ret = new Matrix(this);
-            // applying the function
-            for (int i = 0; i < ret.Height; i++)
-            {
-                for (int j = 0; j < ret.Width; j++)
-                {
-                    ret[i][j] = new Scalar(func(ret.Data[i][j]));
 
-                }
-            }
-            return ret;
-
-        }
-
-        public override Tensor ElementWiseMultiply(Tensor a)
-        {
-            // make sure they are both the same size
-            Assert.AreEqual(a.Dimension,2);
-            // convert a to a matrix
-            Matrix currectA = new Matrix(a);
-            // make sure they are of the same size
-            Assert.AreEqual(currectA.Width,this.Width );
-            Assert.AreEqual(currectA.Height,this.Height );
-            // create the return Matrix
-            Matrix ret = new Matrix(Height, Width);
-            for (int i = 0; i < Height; i++)
-            {
-                for (int j = 0; j < Width; j++)
-                    // the multiplication
-                    ret[i][j] = new Scalar(currectA[i][j] * this[i][j]);
-            }
-            return ret;
-        }
 
         public override Tensor Clone()
         {
             return new Matrix(this);
         }
 
-        public override Tensor Transpose()
+        public  Tensor Transpose()
         {
             // rotate the matrix by 90 degrees
             Matrix ret = new Matrix(this.Width, this.Height);
