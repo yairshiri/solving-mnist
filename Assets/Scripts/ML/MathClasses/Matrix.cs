@@ -7,20 +7,16 @@ namespace ML
     {
         #region variables
 
-        private int _height;
-        private int _width;
         private new Scalar[][] _data;
 
 
         public int Height
         {
-            get => _height;
-            private set => _height = value;
+            get => Shape[0];
         }
         public int Width
         {
-            get => _width;
-            private set => _width = value;
+            get => Shape[1];
         }
 
         public new Scalar[][] Data
@@ -37,10 +33,8 @@ namespace ML
                         _data[i][j] = new Scalar(value[i][j]);
                     }
                 }
-                // setting the new length, width, height
-                Length = value.Length;
-                Width = _data[0].Length;
-                Height = value.Length;
+                // setting the new shape
+                Shape = new []{value.Length,value[0].Length};
             }
         }
 
@@ -49,27 +43,21 @@ namespace ML
         
         #region constructors
         // name constructor, empty
-        public Matrix(string name="") : base(2, name)
-        {
-            
-        }
+        
         // constructor with data and name
-        public Matrix(Scalar[][] data, string name = "") : base(2, name)
+        public Matrix(Scalar[][] data, string name = "") : base(new []{data.Length,data[0].Length}, name)
         {
             // setting the data. we created the setter above
             Data = data;
         }
         // copy constructor
-        public Matrix(Matrix a) : base(2, a.Name)
+        public Matrix(Matrix a) : base(a.Shape, a.Name)
         {
             Data = a.Data;
         }
         // init data to all value
-        public Matrix(int height, int width,float value = 0) : base(2)
+        public Matrix(int height, int width,float value = 0) : base(new []{height,width})
         {
-            // initiating width and height
-            Height = height;
-            Width = width;
             // creating the data matrix
             _data = new Scalar[Height][];
             // setting the data to value
@@ -84,7 +72,7 @@ namespace ML
         }
         
         // copy from tensor 
-        public Matrix(Tensor data,bool copySize = false) :base(2,data.Name)
+        public Matrix(Tensor data,bool copySize = false) :base(data.Shape,data.Name)
         {
             // make sure data is a Matrix
             Assert.AreEqual(data.Dimension, 2);
@@ -94,9 +82,6 @@ namespace ML
             else
             {
                 // if we only copy the sizes
-                Height = ((Matrix)data).Height;
-                Width = ((Matrix)data).Width;
-                Length = ((Matrix)data).Length;
                 // init the data
                 // creating the data matrix
                 _data = new Scalar[Height][];
@@ -297,7 +282,16 @@ namespace ML
             return ret;
         }
 
-
+        public override bool Multiplyable(Tensor a)
+        {
+            // check dimensionality
+            if (Math.Abs(a.Dimension - Dimension) > 1 && Dimension >= a.Dimension)
+                return false;
+            // check the size of the shape
+            if (Width != a.Shape[0])
+                return false;
+            return true;
+        }
         #endregion
     }
 }

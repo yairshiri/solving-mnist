@@ -28,36 +28,19 @@ namespace ML
 
         #region constructors
 
-        // constructor with name and data
-        public Vector(Scalar[]data,string name="") : base(1, name)
-        {
-            Data = data;
-            this.Length = this.Data.Length;
-        }
-
-        // constructor with name and data as  floats
-        public Vector(float[]data,string name="") : base(1, name)
-        {
-            this._data = new Scalar[data.Length];
-            for (int i = 0; i < Length; i++)
-            {
-                Data[i] = new Scalar(data[i]);
-            }
-            this.Length = this.Data.Length;
-        }
         // constructor without name and data as float to be applied to all elements
-        public Vector(int size, float data,string name="") : base(1,name)
+        public Vector(int size, float data,string name="") : base(new []{size},name)
         {
-            this._data = new Scalar[size];
+            _data = new Scalar[size];
             for (int i = 0; i < Length; i++)
             {
                 Data[i] = new Scalar(data);
             }
-            this.Length = this.Data.Length;
+            Length = Data.Length;
         }
         
         // constructor with size and name
-        public Vector(int size, string name="") : base(1, name)
+        public Vector(int size, string name="") : base(new []{size}, name)
         {
             Length = size;
             _data = new Scalar[size];
@@ -69,12 +52,12 @@ namespace ML
         
         
         // copy constructor
-        public Vector(Vector a) : base(1,a.Name)
+        public Vector(Vector a) : base(a.Shape,a.Name)
         {
             this.Data = a.Data;
         }
         //copy from tensor constructor
-        public Vector(Tensor a,bool copySize = false) : base(1,a.Name)
+        public Vector(Tensor a,bool copySize = false) : base(a.Shape,a.Name)
         {
             
             // make sure that the tensor a is actually a vector:

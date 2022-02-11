@@ -18,30 +18,25 @@ namespace ML
         
         #region  constructors
         // data, name constructor
-        public Scalar(float data, string name) : base(0, name)
+        public Scalar(float data, string name) : base(new []{1}, name)
         {
             Data = data;
         }
         // data constructor
-        public Scalar(float data) : base(0)
+        public Scalar(float data) : base(new []{1})
         {
             Data = data;
         }
 
-        public Scalar(Tensor data) : base(0)
+        public Scalar(Tensor data) : base(new []{1})
         {
             // make sure that data is a scalar
             Assert.AreEqual(data.Dimension, 0);
             // copy it
             Data = data.Data;
         }
-        // empty constructor
-        public Scalar() : base(0)
-        {
-            
-        }
         // copy constructor 
-        public Scalar(Scalar a) : base(0, a.Name)
+        public Scalar(Scalar a) : base(new []{1}, a.Name)
         {
             Data = a.Data;
         }

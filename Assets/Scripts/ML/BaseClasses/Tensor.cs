@@ -1,62 +1,100 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ML;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public  abstract class Tensor
+public   class Tensor
 {
     #region variables
     // every tensor needs dimensionality 
-    private int _dimension;
-    
-    public int Dimension
-    {
-        get => _dimension;
-        set => _dimension = value;
-    }
-    
+    private int[] _shape;
+    // only the final tensor has a value
+    private double _value = double.NaN;
     // name, doesn't need to have it
     private string _name = "";
+    // need to add explanation here
+    protected Tensor[] _data ;
+    
+    #endregion
 
+    #region GettersAndSetters
     public string Name
     {
         get => _name;
         set => _name = value;
     }
-    
-    // every tensor needs to have data, but it might be overridden in inheritance.
-    // we set data to a float array because if its a scalar then it's just easier to handle everything with array.
-    protected float[] _data = {0};
-    public  float Data
+
+    public int[] Shape
     {
-        get => _data[0];
-        set => _data[0] = value;
+        get => _shape;
+        set => _shape = value;
     }
-    public  float[] DataArr
+    
+    public int Dimension
+    {
+        get => _shape.Length;
+    }
+    public  Tensor[] Data
     {
         get => _data;
         set => _data = value;
     }
-    
-    // length is the size of the data
-    private int _length = 1;
-    public int Length
+
+    public double Value
     {
-        get => _length;
-        protected set => _length = value;
+        get => _value;
+        set => _value = value;
     }
 
-    
     #endregion
-
     #region constructors
     // constructor with name
-    protected Tensor(int dimension, string name="")
+    public Tensor(int[] shape, string name="")
     {
-        _dimension = dimension;
-        _name = name;
+        Shape = shape;
+        Name = name;
+        Data = new Tensor[Shape[0]];
+        // if we are a scalar or vector. 
+        if (Dimension == 1)
+        {
+            for (int i = 0; i < shape[0]; i++)
+            {
+                Data[i] = new Tensor(0,  name+"["+i+"]");
+            }
+        }
+        for (int i = 0; i < shape[0]; i++)
+        {
+            Data[i] = new Tensor(Shape.Skip(1).ToArray(), name+"["+i+"]");
+        }
+    }
+
+    public Tensor(double value, string name = "")
+    {
+        Shape = new[] {1};
+        Value = value;
+        Name = name;
+    }
+    // copying constructor
+    public Tensor(Tensor a)
+    {
+        Name = a.Name;
+        Shape = a.Shape;
+        Data = new Tensor[Shape[0]];
+        if (Dimension == 1)
+        {
+            for (int i = 0; i < Shape[0]; i++)
+            {
+                Data[i] = new Tensor(a[i].Value,  Name+"["+i+"]");
+            }
+        }
+        for (int i = 0; i < Shape[0]; i++)
+        {
+            Data[i] = new Tensor(a[i]);
+        }
+
     }
     #endregion
 
@@ -90,13 +128,36 @@ public  abstract class Tensor
         return ret;
     }*/
 
-    // square brackets operator
-    public virtual float this[int i]
+    public static Tensor operator *(Tensor a, Tensor b)
     {
-        get { return _data[i]; }
-        set { Data = value; }
+        if (Math.Abs(a.Dimension - b.Dimension) > 1)
+            throw new Exception("The dimentions of a and b need to be equal or 1 less of each other!");
+        Tensor max;
+        Tensor min;
+        if (a.Dimension > b.Dimension)
+        {
+            max = a;
+            min = b;
+        }
+        else
+        {
+            max = b;
+            min = a;
+        }
+        Tensor ret = new Tensor(max.Shape);
+        // i is the max index, j is min.
+        
+        return ret;
     }
 
+    // square brackets operator
+    public virtual Tensor this[int i]
+    {
+        get => Data[i];
+        set => Data[i] = value;
+    }
+    
+    
 
     #endregion
 
@@ -112,16 +173,31 @@ public  abstract class Tensor
         return ret;
     }
 
-    public abstract Tensor ElementWiseFunction(Func<Tensor, Tensor> func);
+    public virtual Tensor ElementWiseFunction(Func<Tensor, Tensor> func)
+    {
+        throw new NotImplementedException();
+    }
 
 
-    public abstract Tensor ElementWiseMultiply(Tensor a);
+    public virtual Tensor ElementWiseMultiply(Tensor a)
+    {
+        throw new NotImplementedException();
+    }
     
-    public abstract Tensor Clone();
+    public virtual Tensor Clone()
+    {
+        throw new NotImplementedException();
+    }
 
-    public abstract Tensor Transpose();
+    public virtual Tensor Transpose()
+    {
+        throw new NotImplementedException();
+    }
 
-
+    public virtual bool Multiplyable(Tensor a)
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 
 }

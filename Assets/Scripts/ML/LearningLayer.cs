@@ -7,7 +7,7 @@ namespace ML
     {
         #region Fields
         // every type of layer has weights
-        private Matrix _weights = new Matrix();
+        private Matrix _weights;
         
         // this remembers the last activations. Every layer needs to implemants this in a deferent way
         protected new Vector _neuronActivations;
