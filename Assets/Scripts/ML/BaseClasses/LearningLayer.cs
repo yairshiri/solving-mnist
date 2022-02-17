@@ -53,8 +53,7 @@ namespace ML
 
         public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)
         {   
-            // item1 is the loss
-            return bPass(Activation.Backwards(loss).Item1);
+            return bPass(Activation.bPass(loss));
         }
         // a method that gets a name of an activation function and returns the Actionlayer associated with it
         private ActionLayer GetActivation(string name)

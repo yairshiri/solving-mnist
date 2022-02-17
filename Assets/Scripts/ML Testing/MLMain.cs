@@ -33,6 +33,7 @@ public class MLMain : MonoBehaviour
     private ML.Loss CE = new Loss( CEFunc,CEDeriv,"categorical crossentropy");
     // creating the Binary Catergorical crossEntropy loss
     private ML.Loss BCE = new Loss( BCCEFunc,CEDeriv,"binary categorical crossentropy");
+    private ML.Loss SoftMaxCE = new Loss( SoftMaxCEFunc,SoftMaxCEDeriv,"softmax categorical crossentropy");
     private Network net;
     
     
@@ -46,7 +47,7 @@ public class MLMain : MonoBehaviour
         for (int i = 0; i < sampleSize; i++)
         {
             features[i] = new Tensor(1, x,"Data "+i);
-            labels[i] = new Tensor(1,x*2+2,  "Label " + i);
+            labels[i] = new Tensor(1,x*x+x*2+2,  "Label " + i);
             /*labels[i][0].Value = 0;
             if (x > 5)
                 labels[i][0].Value = 1;
@@ -58,7 +59,7 @@ public class MLMain : MonoBehaviour
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(3,"softrelu","d1"),
+            new DenseLayer(4,"softrelu","d1"),
             new DenseLayer(4,"softrelu","d2"),
             new DenseLayer(labels[0].Length,"linear","d3"),
         };
@@ -101,7 +102,7 @@ public class MLMain : MonoBehaviour
         Tensor ret = new Tensor(1);
         for (int i = 0; i < input.pred.Length; i++)
         {
-            ret[0].Value += -input.label[i].Value * (float)Math.Log(input.pred[i].Value);
+            ret[0].Value += -input.label[i].Value * Math.Log(input.pred[i].Value);
         }
         return ret;
     }
@@ -123,9 +124,9 @@ public class MLMain : MonoBehaviour
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Tensor ret = new Tensor(1);
+        Tensor ret = new Tensor(1,"BCE Loss");
         //L = -t1*log(s1) - (1-t1)*log(1-s1)
-        ret[0].Value = -input.label[0].Value * (float)Math.Log(input.pred[0].Value) - input.label[1].Value * (float)Math.Log(input.pred[1].Value);
+        ret[0].Value = -input.label[0].Value * Math.Log(input.pred[0].Value) - input.label[1].Value * Math.Log(input.pred[1].Value);
         return ret;
     }
 
@@ -133,13 +134,69 @@ public class MLMain : MonoBehaviour
     {
         // x,y need to have the same length
         Debug.Assert(input.pred.Length==input.label.Length);
-        Tensor ret = new Tensor(input.pred.Length);
+        Tensor ret = new Tensor(input.pred.Length,"BCCEDeriv");
         for (int i = 0; i < input.pred.Length; i++)
         {
             ret[i].Value = -(input.label[i].Value / input.pred[i].Value) + (1 - input.label[i].Value)/(1-input.pred[i].Value);
         }
         return ret;
 
+    }
+
+
+    public static Tensor SoftMaxCEFunc((Tensor pred, Tensor label) input)
+    {
+        input.pred = softmax(input.pred);
+        Tensor ret = new Tensor(1,"softmax ce loss");
+        
+        for (int i = 0; i < input.pred.Length; i++)
+        {
+            ret[0].Value += -input.label[i].Value * Math.Log(input.pred[i].Value);
+        }
+        return ret;
+    }
+    public static Tensor SoftMaxCEDeriv((Tensor pred, Tensor label) input)
+    {
+        input.pred = softmax(input.pred);
+        Tensor ret = new Tensor(input.pred.Length);
+        
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i].Value = input.pred[i].Value - input.label[i].Value;
+        }
+
+        return ret;
+    }
+
+    public static Tensor softmax(Tensor x)
+    {
+        // initializing a new vector with the length of x.
+        Tensor ret = new Tensor(x.Length);
+        double sum = 0;
+        // finding the max value in x
+        double max = x[0].Value;
+        for (int i = 1; i < ret.Length; i++)
+            if (x[i].Value > max)
+                max = x[i].Value;
+        // every element is e to the power of the elements devided by the sum of e to the power of all the elements.
+        // implementation from https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+        for (int i = 0; i < ret.Length; i++)
+        {
+            // x = e^x
+            ret[i] = new Tensor(Math.Exp(x[i].Value - max));
+            // adding to the sum
+            sum += ret[i].Value;
+        }
+
+        // deviding by the sum
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i].Value /= sum;
+            //we do this because we dont want to have 0s (for backprop), so we set a lower bound (NOISE)
+            ret[i].Value = ret[i].Value;// check if the recursive call works!!
+        }
+
+        return ret;
     }
     
     #endregion
@@ -154,7 +211,6 @@ public class MLMain : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        x = (float)rand.NextDouble() * 10;
         net.backwards(features,labels);
         counter++;
         if (counter % LOG_INTERVAL == 0)

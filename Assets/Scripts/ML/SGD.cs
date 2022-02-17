@@ -50,8 +50,8 @@ namespace ML
                 finalBiasGrad[i] = new Tensor(biasGrads[0][i].Shape);
                 for (int j = 0; j < batchSize; j++)
                 {
-                    finalWeightGrad[i] += weightGrads[j][i];
-                    finalBiasGrad[i] += biasGrads[j][i];
+                    finalWeightGrad[i].Value += weightGrads[j][i].Value/batchSize;
+                    finalBiasGrad[i].Value += biasGrads[j][i].Value/batchSize;
                 }
             }
             // returning the final gradiants

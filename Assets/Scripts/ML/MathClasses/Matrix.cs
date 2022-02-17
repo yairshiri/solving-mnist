@@ -141,25 +141,6 @@ namespace ML
 
         #region methods
 
-        public override string ToString()
-        {
-            // getting the base string from the base class (the name, if present)
-            string ret = base.ToString();
-            // adding the values
-            for (int i = 0; i < Height; i++)
-            {
-                ret += "|";
-                // adding the values
-                for (int j = 0; j < Width; j++)
-                {
-                    ret += Data[i][j].Data + "|";
-                }
-                // adding another new line
-                ret += "\n";
-            }
-            return ret;
-            
-        }
 
 
 
@@ -167,7 +148,7 @@ namespace ML
         {
             return new Matrix(this);
         }
-
+/*
         public  Tensor Transpose()
         {
             // rotate the matrix by 90 degrees
@@ -180,7 +161,7 @@ namespace ML
                 }        
             }
             return ret;
-        }
+        }*/
 
         public override bool Multiplyable(Tensor a)
         {

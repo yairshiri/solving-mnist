@@ -50,14 +50,18 @@ namespace ML
 
         public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)
         {
+            return (bPass(loss), null, null);
+        }
 
+        public  Tensor bPass(Tensor loss)
+        {
             Tensor result;
             if (useElementWise)
                 result = NeuronActivations.ElementWiseFunction(action.FunctionDeriv);
             else
                 result = action.FunctionDeriv(NeuronActivations);
             // need to multiply loss by result
-            return (Tensor.MatrixMult(loss,result), null, null);
+            return Tensor.MatrixMult(result, loss);
         }
 
         public override void ApplyGradients(Tensor wGrads, Tensor bGrads)
@@ -90,7 +94,7 @@ namespace ML
         private static Tensor SigmoidFunc(Tensor x)
         {
             //the sigmoid function
-            return new Tensor(1 / (1 + (float)Math.Exp(-x.Value)));
+            return new Tensor(1 / (1 + Math.Exp(-x.Value)));
         }
 
         private static Tensor SigmoidDeriv(Tensor x)
@@ -109,7 +113,7 @@ namespace ML
     {
         #region Fields
 
-        private static float NOISE = 0.00001f;
+        private static double NOISE = 0.00001f;
 
         #endregion
 
@@ -209,7 +213,7 @@ namespace ML
 
         private static Tensor reluDeriv(Tensor x)
         {
-            float ret = 0;
+            double ret = 0;
             // the relu derivative: 
             //{ x > 0 : 1}
             //{ x <= 0: 0}

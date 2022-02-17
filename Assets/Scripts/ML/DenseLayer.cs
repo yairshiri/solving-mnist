@@ -10,7 +10,7 @@ namespace ML
     public class DenseLayer: LearningLayer
     {
         #region variables
-        private static float _learningRate = 0.00001f;
+        private static float _learningRate = 0.00005f;
 
         public int InputSize;
         public int OutputSize;
@@ -109,7 +109,7 @@ namespace ML
         protected override (Tensor, Tensor, Tensor) bPass(Tensor loss)
         {
             // verify that loss has the appropriate shape
-            Assert.AreEqual(loss.Length,OutputSize);
+            Assert.AreEqual(loss.NumOfElements,OutputSize);
             // creating the weight gradients vector
             Matrix wGrads = new Matrix(OutputSize,InputSize,0);
             // creating the input gradients vector

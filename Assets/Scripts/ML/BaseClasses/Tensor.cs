@@ -77,6 +77,19 @@ public   class Tensor
         get => Shape[0];
     }
 
+    public int NumOfElements
+    {
+        get
+        {
+            int ret = 1;
+            for (int i = 0; i < Dimension; i++)
+            {
+                ret *= Shape[i];
+            }
+            return ret;
+        }
+    }
+
     public bool IsScalar => (Data == null&&Length==1&&Dimension==1);
 
     #endregion
@@ -194,7 +207,7 @@ public   class Tensor
     public static Tensor operator *(Tensor a, Tensor b)
     {
         //if a,b are scalars just do scalar multiplication
-        if (a.IsScalar && b.IsScalar)
+        if ((a.IsScalar||(a.Dimension==1&&a.Length==1)) && (b.IsScalar||(b.Dimension==1&&b.Length==1)))
             return new Tensor(a.Value * b.Value);
         if (Math.Abs(a.Dimension - b.Dimension) > 1)
             throw new Exception("The dimentions of a and b need to be equal or 1 less of each other!");
@@ -223,7 +236,12 @@ public   class Tensor
     // square brackets operator
     public virtual Tensor this[int i]
     {
-        get => Data[i];
+        get
+        {
+            if (IsScalar)
+                return this;
+            return Data[i];
+        }
         set => Data[i] = value;
     }
 
@@ -233,11 +251,30 @@ public   class Tensor
 
     public new virtual  string ToString()
     {
-        // all tensors may have names, so instead of implementing this (the name adding) for every claas we implement here
-        // and use in other classes (with base.ToString())
         string ret = "";
         if (Name != "")
             ret += Name+": ";
+        if (IsScalar)
+            return ret + Value;
+        ret += "\n";
+        if (Dimension <= 1 && !IsScalar)
+        {
+            ret += "[";
+            for (int i = 0; i < this.Length; i++)
+            {
+                ret+=this[i].Value+",";
+            }
+
+            ret= ret.Remove(ret.Length-1,1);
+            ret += "]\n";
+        }
+        else
+        {
+            for (int i = 0; i < this.Length; i++)
+            {
+                ret+=this[i].ToString();
+            }
+        }
         return ret;
     }
 
@@ -289,11 +326,47 @@ public   class Tensor
         return false;
     }
 
+    // 
+    public virtual Tensor Atleast2d(int axis = 0)
+    {
+        // if we are atleast 2d, just return this.
+        if (this.Dimension >= 2)
+            return this;
+        Tensor ret;
+        if (axis == 0)
+        {
+            ret = new Tensor(new[]{1,this.Length});
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j].Value = this[j].Value;
+                }
+            }
+        }
+        else
+        {
+            ret = new Tensor(new[]{this.Length,1});
+            for (int i = 0; i < ret.Height; i++)
+            {
+                for (int j = 0; j < ret.Width; j++)
+                {
+                    ret[i][j].Value = this[i].Value;
+                }
+            }
+        }
+        
+        return ret;
+    }
+
 
     public static Tensor MatrixMult(Tensor a, Tensor b)
     {
         if (a.Dimension<2  && b.Dimension < 2)
             return a * b;
+        // making sure both a,b are matrices
+        a = a.Atleast2d();
+        b = b.Atleast2d(axis:1);
         Assert.AreEqual(a.Shape[1],b.Shape[0]);
         Tensor ret = new Tensor(new[] { a.Shape[0], b.Shape[1] },name:a.Name + " * " + b.Name);
         for (int i = 0; i < ret.Shape[0]; i++)
@@ -307,6 +380,23 @@ public   class Tensor
             }
         }
 
+        return ret;
+    }
+
+    public virtual Tensor Transpose()
+    {
+        // we need to make sure we return a matrix.
+        Tensor temp = this.Atleast2d();
+        // create a new rotated matrix:
+        Tensor ret = new Tensor(new []{temp.Shape[1],temp.Shape[0]},name:this.Name+" transposed");
+        // copy the values
+        for (int i = 0; i < temp.Height; i++)
+        {
+            for (int j = 0; j < temp.Width; j++)
+            {
+                ret[j][i].Value = temp[i][j].Value;
+            }
+        }
         return ret;
     }
 
