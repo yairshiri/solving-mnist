@@ -9,7 +9,7 @@ using Random = System.Random;
 public class MLMain : MonoBehaviour
 {
     private static int sampleSize = 100000;
-    private static int batchSize = 100;
+    private static int batchSize = 250;
 
     private float noise = 0.00001f;
     
@@ -17,7 +17,7 @@ public class MLMain : MonoBehaviour
     // counts loops through update
     private int counter = 0;
     // log every LOG_INTERVAL loops through update
-    private int LOG_INTERVAL = 20;
+    private int LOG_INTERVAL = 1;
     
     private float lr = 0.00001f;
     private Tensor[] features = new Tensor[sampleSize];
@@ -47,11 +47,11 @@ public class MLMain : MonoBehaviour
         for (int i = 0; i < sampleSize; i++)
         {
             features[i] = new Tensor(1, x,"Data "+i);
-            labels[i] = new Tensor(1,x*(-9)+6,  "Label " + i);
-            /*labels[i][0].Value = 0;
+            labels[i] = new Tensor(2,x*x,  "Label " + i);
+            labels[i][0].Value = 0;
             if (x > 5)
                 labels[i][0].Value = 1;
-            labels[i][1].Value = 1 - labels[i][0].Value;*/
+            labels[i][1].Value = 1 - labels[i][0].Value;
             x = rand.NextDouble() * 10;
 
         }
@@ -59,10 +59,12 @@ public class MLMain : MonoBehaviour
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(labels[0].Length,"linear","d4"),
+            new DenseLayer(8,"selu","d4"),
+            new DenseLayer(8,"selu","d4"),
+            new DenseLayer(labels[0].Length,"softmax","d4",useLeCun:true),
         };
-        Optimizer optimizer = new SGD(batchSize);
-        net = new Network(layers,lr,1,mse,optimizer);
+        Optimizer optimizer = new SGDMomentum(batchSize,0.95);
+        net = new Network(layers,lr,1,BCE,optimizer);
 
     }
     #region activations

@@ -54,8 +54,8 @@ namespace ML
                 finalBiasGrad[i] = new Tensor(biasGrads[0][i].Shape);
                 for (int j = 0; j < batchSize; j++)
                 {
-                    finalWeightGrad[i].Value += weightGrads[j][i].Value/batchSize;
-                    finalBiasGrad[i].Value += biasGrads[j][i].Value/batchSize;
+                    finalWeightGrad[i].Value += weightGrads[j][i].Value;
+                    finalBiasGrad[i].Value += biasGrads[j][i].Value;
                 }
             }
             // if the momentum tensors are not initialised, we need to init them with the shape of the gradients
@@ -72,6 +72,8 @@ namespace ML
                 {
                     Vb[i] = new Tensor(finalBiasGrad[i].Shape);
                 }
+
+                inited = true;
             }
             
             // updating vw,vb
