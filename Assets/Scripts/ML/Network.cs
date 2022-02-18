@@ -72,7 +72,7 @@ namespace ML
             Tensor pred = new Tensor( forwards(features));
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
-            Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
+            //Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
             
             // a gradients array. the gradients will be applied after getting them. 
             // we put values in the array in the order we use and get them, meaning from the end to the start. 

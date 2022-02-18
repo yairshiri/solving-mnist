@@ -73,6 +73,8 @@ namespace ML
                     break;
                 case "softrelu":ret = new SoftReLULayer(outputShape);
                     break;
+                case "selu": ret = new SeluLayer(outputShape);
+                    break;
                 default:
                     throw new Exception("Activation name is invalid!!!");
             }

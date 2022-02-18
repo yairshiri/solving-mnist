@@ -267,7 +267,7 @@ namespace ML
 
         public SoftReLULayer(int[] shape, string name = "") : base(shape, name)
         {
-            var linear = new Function<Tensor, Tensor>(SoftReLUFunc, SoftReLUDeriv, "Linear");
+            var linear = new Function<Tensor, Tensor>(SoftReLUFunc, SoftReLUDeriv, "SoftRelu");
             Init(linear);
         }
 
@@ -286,5 +286,50 @@ namespace ML
         }
 
         #endregion Methods
+    }
+
+
+    public class SeluLayer : ActionLayer
+    {
+        #region Fields
+
+        private static double ALPHA = 1.6732632423543772848170429916717;
+        private static double LAMBDA = 1.0507009873554804934193349852946;
+        
+        #endregion Fields
+
+        #region Constructors
+
+        public SeluLayer(int[] shape, string name = "") : base(shape, name)
+        {
+            var selu = new Function<Tensor, Tensor>(SeluFunc, SeluDeriv, "Selu");
+            Init(selu);
+        }
+
+        #endregion Constructors
+
+        #region Methods
+        //  the Selu function. Straight from the paper!!
+        private static Tensor SeluFunc(Tensor x)
+        {
+            double ret = LAMBDA;
+            if (x.Value > 0)
+                ret *= x.Value;
+            else
+            {
+                ret *= ALPHA * Math.Exp(x.Value) - ALPHA;
+            }
+
+            return new Tensor(ret);
+        }
+
+        private static Tensor SeluDeriv(Tensor x)
+        {
+            double ret = LAMBDA;
+            if (x.Value <= 0)
+                ret *= ALPHA*Math.Exp(x.Value);
+            return new Tensor(ret);
+        }
+        #endregion
     }
 }

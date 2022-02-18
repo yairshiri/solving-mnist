@@ -10,11 +10,12 @@ namespace ML
     public class DenseLayer: LearningLayer
     {
         #region variables
-        private static float _learningRate = 0.00005f;
+        private static float _learningRate = 0.00001f;
 
         public int InputSize;
         public int OutputSize;
-        
+        // if this is true, we will use the Lecun weight init method instead of the xavier one.
+        private bool useLeCun;
         
 
         public Tensor Bias
@@ -39,14 +40,14 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int shape,ActionLayer activation,string name="") : base(new []{shape}, activation,name)
+        public DenseLayer(int shape,ActionLayer activation,string name="",bool useLeCun = false) : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
             Name = name;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
-        public DenseLayer(int shape,string activation,string name="") : base(new []{shape}, activation,name)
+        public DenseLayer(int shape,string activation,string name="",bool useLeCun = false) : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
             Name = name;
@@ -68,7 +69,13 @@ namespace ML
             Bias = new Tensor(size:OutputSize,name:Name+" bias");
             //initiating the weight values with the xavier method
             var rand = new Random();
-            float lim =(float)Math.Sqrt(6.0/ InputSize + OutputSize);
+            double lim =Math.Sqrt(6.0/ InputSize + OutputSize);
+            // if we are using the selu activation layer we also want to use the lecun method
+            if (useLeCun || Activation.GetType() == typeof(SeluLayer))
+            {
+                //we use the lecun init method instead of the xavier one:
+                lim = Math.Sqrt(3.0/ InputSize);
+            }
             // generating the weights
             for (int i = 0; i < Weights.Height; i++)
             {

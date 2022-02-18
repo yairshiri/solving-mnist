@@ -23,7 +23,7 @@ public class MLMain : MonoBehaviour
     private Tensor[] features = new Tensor[sampleSize];
     private Tensor[] labels = new Tensor[sampleSize];
     private Random rand = new Random();
-    private float x ;
+    private double x ;
 
     // creating the softmax activation func 
     //private ML.Function<Tensor,Tensor> softmax = new Function<Tensor,Tensor>( softmaxFunc,softmaxDeriv,"softmax");
@@ -40,28 +40,26 @@ public class MLMain : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        x = (float)rand.NextDouble() * 10;
+        x = rand.NextDouble() * 10;
         // generating the data
         Debug.Log("Generating data...");
         
         for (int i = 0; i < sampleSize; i++)
         {
             features[i] = new Tensor(1, x,"Data "+i);
-            labels[i] = new Tensor(1,x*x+x*2+2,  "Label " + i);
+            labels[i] = new Tensor(1,x*(-9)+6,  "Label " + i);
             /*labels[i][0].Value = 0;
             if (x > 5)
                 labels[i][0].Value = 1;
             labels[i][1].Value = 1 - labels[i][0].Value;*/
-            x = (float)rand.NextDouble() * 10;
+            x = rand.NextDouble() * 10;
 
         }
 
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(4,"softrelu","d1"),
-            new DenseLayer(4,"softrelu","d2"),
-            new DenseLayer(labels[0].Length,"linear","d3"),
+            new DenseLayer(labels[0].Length,"linear","d4"),
         };
         Optimizer optimizer = new SGD(batchSize);
         net = new Network(layers,lr,1,mse,optimizer);

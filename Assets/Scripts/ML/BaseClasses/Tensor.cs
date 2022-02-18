@@ -233,6 +233,23 @@ public   class Tensor
         return ret;
     }
 
+    public static Tensor operator *(Tensor a, double b)
+    {
+        if (a.IsScalar)
+            return new Tensor(a.Value * b);
+        Tensor ret = new Tensor(a);
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i] *= b;
+        }
+        return ret;
+    }
+
+    public static Tensor operator *(double a, Tensor b)
+    {
+        return b * a;
+    }
+    
     // square brackets operator
     public virtual Tensor this[int i]
     {
