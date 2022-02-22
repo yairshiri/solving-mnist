@@ -55,13 +55,13 @@ namespace ML
 
         public  Tensor bPass(Tensor loss)
         {
-            Tensor result;
+            Tensor delta;
             if (useElementWise)
-                result = NeuronActivations.ElementWiseFunction(action.FunctionDeriv);
+                delta = NeuronActivations.ElementWiseFunction(action.FunctionDeriv);
             else
-                result = action.FunctionDeriv(NeuronActivations);
+                delta = action.FunctionDeriv(NeuronActivations);
             // need to multiply loss by result
-            return Tensor.MatrixMult(result, loss);
+            return Tensor.MatrixMult(delta, loss);
         }
 
         public override void ApplyGradients(Tensor wGrads, Tensor bGrads)

@@ -28,7 +28,15 @@ public   class Tensor
     
     public int Height => Shape[0];
 
-    public int Width => Shape[1];
+    public int Width
+    {
+        get
+        {
+            if (Dimension < 2)
+                return 1;
+            return Shape[1];
+        }
+    }
 
     public string Name
     {
@@ -176,12 +184,12 @@ public   class Tensor
         // add two same shape tensors or one is a scalar (if both then we don't even get here)
         Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape)||b.IsScalar||a.IsScalar);
         // find the one with the bigger dimension. 
-        Tensor max = b;
-        Tensor min = a;
-        if (a.Dimension > b.Dimension)
+        Tensor max = a;
+        Tensor min = b;
+        if (b.Dimension > a.Dimension)
         {
-            max = a;
-            min = b;
+            max = b;
+            min = a;
         }
         ret = new Tensor(max);
         for (int i = 0; i < ret.Length; i++)
@@ -197,19 +205,18 @@ public   class Tensor
         if (a.IsScalar && b.IsScalar)
             return new Tensor(a.Value * b.Value);
         Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape)||b.IsScalar||a.IsScalar);
-        Tensor max = b;
-        Tensor min = a;
-        if (a.Dimension > b.Dimension)
+        Tensor max = a;
+        Tensor min = b;
+        if (b.Dimension > a.Dimension)
         {
-            max = a;
-            min = b;
+            max = b;
+            min = a;
         }
         Tensor ret = new Tensor(max);
         // multiplying the values
         for (int i = 0; i < ret.Length; i++)
         {
             ret[i] *=  min[i];
-            
         }
         return ret;
     }
@@ -270,7 +277,15 @@ public   class Tensor
                 return this;
             return Data[i];
         }
-        set => Data[i] = value;
+        set
+        {
+            if (IsScalar)
+            {
+                Value = value.Value;
+                Name = value.Name;
+            }
+            Data[i] = value;
+        }
     }
 
     #endregion
@@ -353,8 +368,7 @@ public   class Tensor
             return true;
         return false;
     }
-
-    // 
+    
     public virtual Tensor Atleast2d(int axis = 0)
     {
         // if we are atleast 2d, just return this.
@@ -390,24 +404,29 @@ public   class Tensor
 
     public static Tensor MatrixMult(Tensor a, Tensor b)
     {
-        if (a.Dimension<2  && b.Dimension < 2)
+        if (a.Dimension < 2 && b.Dimension < 2)
             return a * b;
-        // making sure both a,b are matrices
-        a = a.Atleast2d();
-        b = b.Atleast2d(axis:1);
-        Assert.AreEqual(a.Shape[1],b.Shape[0]);
-        Tensor ret = new Tensor(new[] { a.Shape[0], b.Shape[1] },name:a.Name + " * " + b.Name);
-        for (int i = 0; i < ret.Shape[0]; i++)
+        Tensor ret;
+        Assert.AreEqual(a.Width,b.Height);
+        // if b is a vector (its dimension is 1), then we want to return a vector. else, obviously, a matrix.
+        if (b.Dimension == 1)
         {
-            for (int j = 0; j < ret.Shape[1]; j++)
+            ret = new Tensor( a.Height,name:a.Name + " * " + b.Name);
+        }
+        else
+        {
+            ret= new Tensor(new[] { a.Height, b.Width },name:a.Name + " * " + b.Name);
+        }
+        for (int i = 0; i < ret.Height; i++)
+        {
+            for (int j = 0; j < ret.Width; j++)
             {
-                for (int k = 0; k < a.Shape[1]; k++)
+                for (int k = 0; k < a.Width; k++)
                 {
-                    ret[i][j] = new Tensor(ret[i][j].Value+a[i][k].Value*b[k][j].Value);
+                    ret[i][j].Value += a[i][k].Value*b[k][j].Value;
                 }
             }
         }
-
         return ret;
     }
 
