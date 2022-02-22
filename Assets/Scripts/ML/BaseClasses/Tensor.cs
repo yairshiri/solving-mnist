@@ -471,5 +471,17 @@ public   class Tensor
         return ret;
     }
 
+    public virtual Tensor Concat(Tensor x)
+    {
+        Assert.IsTrue(Enumerable.SequenceEqual(x.Shape, this.Shape));
+        Tensor ret = new Tensor(new[] { Shape[0] }.Concat(Shape.Skip(1)).ToArray());
+        for (int i = 0; i < ret.Height/2; i++)
+        {
+            ret[i] = this[i].Clone();
+            ret[ret.Height+i] = x[i].Clone();
+        }
+        return ret;
+    }
+
     #endregion
 }

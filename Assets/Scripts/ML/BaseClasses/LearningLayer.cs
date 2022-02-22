@@ -16,6 +16,9 @@ namespace ML
         
         // the bias vector. it's length is the length of the output.
         protected Tensor _bias;
+        
+        private static Random rand = new Random();
+
 
         // using the copying constructor 
         public Tensor Weights
@@ -87,7 +90,19 @@ namespace ML
 
         protected abstract Tensor fPass(Tensor input);
         protected abstract (Tensor, Tensor, Tensor)  bPass(Tensor input);
+        
+        protected static double Normal(double mean, double stdDev)
+        {
+            double u1 = 1.0-rand.NextDouble(); 
+            double u2 = 1.0-rand.NextDouble();
+            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+                                   Math.Sin(2.0 * Math.PI * u2); 
+            double randNormal =
+                mean + stdDev * randStdNormal; 
+            return randNormal;
+        }
 
+        
         #endregion Methods
 
     }

@@ -15,8 +15,6 @@ namespace ML
 
         public int InputSize;
         public int OutputSize;
-        // if this is true, we will use the Lecun weight init method instead of the xavier one.
-        private bool useLeCun;
         
 
         public Tensor Bias
@@ -41,14 +39,14 @@ namespace ML
         // all constructor need to get an activation function and a size
         
         // constructor with name
-        public DenseLayer(int shape,ActionLayer activation,string name="",bool useLeCun = false) : base(new []{shape}, activation,name)
+        public DenseLayer(int shape,ActionLayer activation,string name="") : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
             Name = name;
             // we use outputshape[0] and inputshape[0] because the input is allways a vector with dense layers.
             OutputSize = shape;
         }
-        public DenseLayer(int shape,string activation,string name="",bool useLeCun = false) : base(new []{shape}, activation,name)
+        public DenseLayer(int shape,string activation,string name="") : base(new []{shape}, activation,name)
         {
             outputShape = new []{shape};
             Name = name;
@@ -69,28 +67,32 @@ namespace ML
             // initiating the bias with a 0.001 value, will init with other values later (like we generate weights)
             Bias = new Tensor(size:OutputSize,name:Name+" bias");
             //initiating the weight values with the xavier method
-            var rand = new Random();
-            double lim =Math.Sqrt(6.0/ InputSize + OutputSize);
-            // if we are using the selu activation layer we also want to use the lecun method
-            if (useLeCun || Activation.GetType() == typeof(SeluLayer))
+            double lim;
+            switch (Activation)
             {
-                //we use the lecun init method instead of the xavier one:
-                lim = Math.Sqrt(3.0/ InputSize);
+                case SigmoidLayer sigmoidLayer:
+                    //we use xavier init method for sigmoid
+                    lim = Math.Sqrt(1.0 / (InputSize + OutputSize));
+                    break;
+                case SeluLayer seluLayer:
+                    // if we are using the selu activation layer we also want to use the lecun method
+                    lim = Math.Sqrt(1.0 / InputSize);
+                    break;
+                default:
+                    // He method for all of the rest
+                    lim = Math.Sqrt(2.0 / InputSize);
+                    break;
             }
+
+            double WeightFunc() => Normal(0, lim);
             // generating the weights
             for (int i = 0; i < Weights.Height; i++)
             {
                 for (int j = 0; j < Weights.Width; j++)
                 {
-                    // generating a new value (float) between -lim and lim
-                    Weights[i][j].Value = rand.NextDouble()*2*lim-lim;
+                    // generating a new value between -lim and lim
+                    Weights[i][j].Value = WeightFunc();
                 }
-            }
-            // generating the gradients
-            for (int i = 0; i < Bias.Length; i++)
-            {
-                // we generate the bias like we generate weights
-                Bias[i].Value = rand.NextDouble()*2*lim-lim;
             }
         }
         
@@ -135,7 +137,7 @@ namespace ML
                     aGrads[j] += loss[i] * Weights[i][j];
                 }
                 //bgrads calculation
-                bGrads[i] = loss[i];
+                bGrads[i] += loss[i];
             }
             //printing the weight gradients, I want to check for exploding gradients
             //Debug.Log(wGrads.ToString());
@@ -178,6 +180,7 @@ namespace ML
             ret+= Bias.ToString();
             return ret;
         }
+
 
         #endregion
     }
