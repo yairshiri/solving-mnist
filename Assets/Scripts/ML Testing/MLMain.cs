@@ -46,9 +46,9 @@ public class MLMain : MonoBehaviour
         for (int i = 0; i < sampleSize; i++)
         {
             x = rand.NextDouble() * 10;
-            features[i] = new Tensor(2, x,"Data "+i);
-            features[i][1].Value = rand.NextDouble() * 10;
-            labels[i] = new Tensor(1,features[i][0].Value * features[i][1].Value,  "Label " + i);
+            features[i] = new Tensor(1, x,"Data "+i);
+            // features[i][1].Value = rand.NextDouble() * 10;
+            labels[i] = new Tensor(1,Math.Pow(x,3),  "Label " + i);
             // labels[i][0].Value = 0;
             // if (x > 5)
             //     labels[i][0].Value = 1;
@@ -62,7 +62,7 @@ public class MLMain : MonoBehaviour
             new DenseLayer(4,"selu","d4"),
             new DenseLayer(labels[0].Length,"linear","d4"),
         };
-        Optimizer optimizer = new SGDMomentum(batchSize,0.9);
+        Optimizer optimizer = new Adam(batchSize);
         net = new Network(layers,lr,features[0].Length,mse,optimizer);
     }
     #region activations

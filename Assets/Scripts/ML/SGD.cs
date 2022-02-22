@@ -13,9 +13,10 @@ namespace ML
         
         #region Constructor
 
-        public SGD(int batchSize)
+        public SGD(int batchSize,double learningRate = 0.00001)
         {
             this.batchSize = batchSize;
+            this.learningRate = learningRate;
         }
         #endregion
         

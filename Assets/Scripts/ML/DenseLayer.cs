@@ -10,7 +10,8 @@ namespace ML
     public class DenseLayer: LearningLayer
     {
         #region variables
-        private static float _learningRate = 0.00001f;
+
+        private static double _learningRate = 1E-1;
 
         public int InputSize;
         public int OutputSize;

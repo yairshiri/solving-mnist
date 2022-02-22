@@ -1,4 +1,6 @@
-﻿namespace ML
+﻿using UnityEngine;
+
+namespace ML
 {
     public class RMSProp:SGD
     {
@@ -6,7 +8,8 @@
         private Tensor[] Sb;
         private double beta;
         private bool inited;
-        public RMSProp(int batchSize,double beta = 0.9) : base(batchSize)
+        private double NOISE = 0.00001;
+        public RMSProp(int batchSize,double beta = 0.9,double learningRate = 0.00001) : base(batchSize,learningRate)
         {
             this.beta = beta;
         }
@@ -42,19 +45,17 @@
             {
                 Sb[i] = beta*Sb[i]+(1-beta)*finalBiasGrad[i].Pow(2);
             }
-            // doing the deviding
-            Tensor[] retw = new Tensor[Sw.Length];
-            Tensor[] retb = new Tensor[Sb.Length];
-            for (int i = 0; i < retw.Length; i++)
+            // doing the dividing
+            for (int i = 0; i < finalWeightGrad.Length; i++)
             {
-                retw[i] = finalWeightGrad[i] / Sw[i].Pow(0.5);
+                finalWeightGrad[i] /= Sw[i].Pow(0.5)+NOISE;
             }
-            for (int i = 0; i < retb.Length; i++)
+            for (int i = 0; i < finalBiasGrad.Length; i++)
             {
-                retb[i] = finalBiasGrad[i] / Sb[i].Pow(0.5);
+                finalBiasGrad[i] /= Sb[i].Pow(0.5)+NOISE;
             }
             // returning the final gradiants
-            return (retw, retb);
+            return (finalWeightGrad, finalBiasGrad);
         }
 
         

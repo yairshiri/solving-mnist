@@ -14,7 +14,7 @@ public   class Tensor
     private int[] _shape;
 
     // only the final tensor has a value
-    private double _value = 0;
+    private double _value;
 
     // name, doesn't need to have it
     private string _name = "";
@@ -98,7 +98,7 @@ public   class Tensor
         }
     }
 
-    public bool IsScalar => (Data == null&&Length==1&&Dimension==1);
+    public bool IsScalar => (Dimension == 0);
 
     #endregion
 
@@ -164,7 +164,7 @@ public   class Tensor
     }
     public Tensor(double value, string name = "")
     {
-        Shape = new[] {1};
+        Shape = Array.Empty<int>();
         Value = value;
         Name = name;
     }
@@ -234,7 +234,6 @@ public   class Tensor
         }
         return ret;
     }
-
     public static Tensor operator *(Tensor a, double b)
     {
         if (a.IsScalar)
@@ -246,7 +245,6 @@ public   class Tensor
         }
         return ret;
     }
-
     public static Tensor operator *(double a, Tensor b)
     {
         return b * a;
@@ -262,12 +260,26 @@ public   class Tensor
         }
         return ret;
     }
-
     public static Tensor operator /(double a, Tensor b)
     {
         return b / a;
     }
-    
+    public static Tensor operator +(Tensor a, double b)
+    {
+        if (a.IsScalar)
+            return new Tensor(a.Value / b);
+        Tensor ret = new Tensor(a);
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i] /= b;
+        }
+        return ret;
+    }
+    public static Tensor operator +(double a, Tensor b)
+    {
+        return b + a;
+    }
+
     // square brackets operator
     public virtual Tensor this[int i]
     {
@@ -296,10 +308,9 @@ public   class Tensor
     {
         string ret = "";
         if (Name != ""&&Addname)
-            ret += Name+": ";
+            ret += Name+":\n";
         if (IsScalar)
             return ret + Value;
-        ret += "\n";
         if (Dimension <= 1 && !IsScalar)
         {
             ret += "[";

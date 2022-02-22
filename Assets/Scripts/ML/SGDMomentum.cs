@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace ML
 {
@@ -15,7 +16,7 @@ namespace ML
         
         #region Constructor
 
-        public SGDMomentum(int batchSize,double beta=0.9):base(batchSize)
+        public SGDMomentum(int batchSize,double beta=0.9,double learningRate=0.00001):base(batchSize,learningRate)
         {
             this.beta = beta;
         }
@@ -39,18 +40,17 @@ namespace ML
                 {
                     Vb[i] = new Tensor(finalBiasGrad[i].Shape);
                 }
-
                 inited = true;
             }
             
             // updating vw,vb
             for (int i = 0; i < finalWeightGrad.Length; i++)
             {
-                Vw[i] = new Tensor(beta*Vw[i]+(1-beta)*finalWeightGrad[i]);
+                Vw[i] = beta*Vw[i]+(1-beta)*finalWeightGrad[i];
             }
             for (int i = 0; i < finalBiasGrad.Length; i++)
             {
-                Vb[i] = new Tensor(beta*Vb[i]+(1-beta)*finalBiasGrad[i]);
+                Vb[i] = beta*Vb[i]+(1-beta)*finalBiasGrad[i];
             }
 
             // returning the final gradiants
