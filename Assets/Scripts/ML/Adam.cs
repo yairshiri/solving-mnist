@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace ML
 {
@@ -14,7 +15,7 @@ namespace ML
         private bool inited = false;
         private int counter = 1;
         
-        public Adam(int batchSize,double beta1 = 0.9,double beta2 = 0.999 ,double learningRate = 1E-05) : base(batchSize, learningRate)
+        public Adam(int batchSize,double beta1 = 0.9,double beta2 = 0.999 ,double learningRate = 1E-02) : base(batchSize, learningRate)
         {
             this.beta1 = beta1;
             this.beta2 = beta2;
@@ -74,12 +75,13 @@ namespace ML
             // doing the dividing
             for (int i = 0; i < finalWeightGrad.Length; i++)
             {
-                finalWeightGrad[i] = Vw[i]/Sw[i].Pow(0.5);
+                finalWeightGrad[i] = Vw[i]/(Sw[i].Pow(0.5)+NOISE);
                 finalWeightGrad[i] *= biasCurrectionFactor;
+
             }
             for (int i = 0; i < finalBiasGrad.Length; i++)
             {
-                finalBiasGrad[i] =Vb[i]/ Sb[i].Pow(0.5);
+                finalBiasGrad[i] =Vb[i]/( Sb[i].Pow(0.5)+NOISE);
                 finalBiasGrad[i] *= biasCurrectionFactor;
             }
             counter++;

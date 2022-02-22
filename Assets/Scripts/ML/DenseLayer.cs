@@ -11,7 +11,7 @@ namespace ML
     {
         #region variables
 
-        private static double _learningRate = 1E-1;
+        private static double _learningRate = 1E-2;
 
         public int InputSize;
         public int OutputSize;

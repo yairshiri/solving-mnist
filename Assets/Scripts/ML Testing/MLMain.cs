@@ -48,7 +48,7 @@ public class MLMain : MonoBehaviour
             x = rand.NextDouble() * 10;
             features[i] = new Tensor(1, x,"Data "+i);
             // features[i][1].Value = rand.NextDouble() * 10;
-            labels[i] = new Tensor(1,Math.Pow(x,3),  "Label " + i);
+            labels[i] = new Tensor(1,Math.Pow(x,2),  "Label " + i);
             // labels[i][0].Value = 0;
             // if (x > 5)
             //     labels[i][0].Value = 1;
@@ -58,8 +58,9 @@ public class MLMain : MonoBehaviour
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(4,"selu","d4"),
-            new DenseLayer(4,"selu","d4"),
+            new DenseLayer(4,"selu","d3"),
+            new DenseLayer(4,"selu","d3"),
+            new DenseLayer(4,"selu","d3"),
             new DenseLayer(labels[0].Length,"linear","d4"),
         };
         Optimizer optimizer = new Adam(batchSize);

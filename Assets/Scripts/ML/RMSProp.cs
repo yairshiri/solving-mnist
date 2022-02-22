@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace ML
 {
@@ -8,8 +9,9 @@ namespace ML
         private Tensor[] Sb;
         private double beta;
         private bool inited;
-        private double NOISE = 0.00001;
-        public RMSProp(int batchSize,double beta = 0.9,double learningRate = 0.00001) : base(batchSize,learningRate)
+        private double NOISE = 1E-8;
+        private int counter = 1;
+        public RMSProp(int batchSize,double beta = 0.9,double learningRate = 1E-2) : base(batchSize,learningRate)
         {
             this.beta = beta;
         }
@@ -45,15 +47,18 @@ namespace ML
             {
                 Sb[i] = beta*Sb[i]+(1-beta)*finalBiasGrad[i].Pow(2);
             }
+
+            double biasCurrection = 1 / (1 - Math.Pow(beta, counter));
             // doing the dividing
             for (int i = 0; i < finalWeightGrad.Length; i++)
             {
-                finalWeightGrad[i] /= Sw[i].Pow(0.5)+NOISE;
+                finalWeightGrad[i] /= (Sw[i]*biasCurrection).Pow(0.5)+NOISE;
             }
             for (int i = 0; i < finalBiasGrad.Length; i++)
             {
-                finalBiasGrad[i] /= Sb[i].Pow(0.5)+NOISE;
+                finalBiasGrad[i] /= (Sb[i]*biasCurrection).Pow(0.5)+NOISE;
             }
+            counter++;
             // returning the final gradiants
             return (finalWeightGrad, finalBiasGrad);
         }

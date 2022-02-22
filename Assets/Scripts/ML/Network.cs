@@ -117,7 +117,6 @@ namespace ML
             {
                 ret += Layers[i].ToString();
             }
-
             return ret;
         }
         #endregion

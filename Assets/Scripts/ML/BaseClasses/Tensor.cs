@@ -267,11 +267,11 @@ public   class Tensor
     public static Tensor operator +(Tensor a, double b)
     {
         if (a.IsScalar)
-            return new Tensor(a.Value / b);
+            return new Tensor(a.Value + b);
         Tensor ret = new Tensor(a);
         for (int i = 0; i < ret.Length; i++)
         {
-            ret[i] /= b;
+            ret[i] += b;
         }
         return ret;
     }
