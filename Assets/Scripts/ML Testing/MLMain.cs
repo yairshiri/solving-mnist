@@ -19,7 +19,7 @@ public class MLMain : MonoBehaviour
     // log every LOG_INTERVAL loops through update
     private int LOG_INTERVAL = 1;
     
-    private float lr = 0.00001f;
+    private float lr = 0.0001f;
     private Tensor[] features = new Tensor[sampleSize];
     private Tensor[] labels = new Tensor[sampleSize];
     private Random rand = new Random();
@@ -40,32 +40,30 @@ public class MLMain : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        x = rand.NextDouble() * 10;
         // generating the data
         Debug.Log("Generating data...");
         
         for (int i = 0; i < sampleSize; i++)
         {
-            features[i] = new Tensor(1, x,"Data "+i);
-            labels[i] = new Tensor(2,x*x,  "Label " + i);
-            labels[i][0].Value = 0;
-            if (x > 5)
-                labels[i][0].Value = 1;
-            labels[i][1].Value = 1 - labels[i][0].Value;
             x = rand.NextDouble() * 10;
-
+            features[i] = new Tensor(2, x,"Data "+i);
+            features[i][1].Value = rand.NextDouble() * 10;
+            labels[i] = new Tensor(1,features[i][0].Value * features[i][1].Value,  "Label " + i);
+            // labels[i][0].Value = 0;
+            // if (x > 5)
+            //     labels[i][0].Value = 1;
+            // labels[i][1].Value = 1 - labels[i][0].Value;
         }
 
         Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(8,"selu","d4"),
-            new DenseLayer(8,"selu","d4"),
-            new DenseLayer(labels[0].Length,"softmax","d4",useLeCun:true),
+            new DenseLayer(4,"selu","d4"),
+            new DenseLayer(4,"selu","d4"),
+            new DenseLayer(labels[0].Length,"linear","d4"),
         };
-        Optimizer optimizer = new SGDMomentum(batchSize,0.95);
-        net = new Network(layers,lr,1,BCE,optimizer);
-
+        Optimizer optimizer = new SGDMomentum(batchSize,0.9);
+        net = new Network(layers,lr,features[0].Length,mse,optimizer);
     }
     #region activations
     
@@ -147,7 +145,7 @@ public class MLMain : MonoBehaviour
     public static Tensor SoftMaxCEFunc((Tensor pred, Tensor label) input)
     {
         input.pred = softmax(input.pred);
-        Tensor ret = new Tensor(1,"softmax ce loss");
+        Tensor ret = new Tensor(0,"softmax ce loss");
         
         for (int i = 0; i < input.pred.Length; i++)
         {

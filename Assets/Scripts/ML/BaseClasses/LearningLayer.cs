@@ -46,9 +46,7 @@ namespace ML
 
         public override Tensor Forwards(Tensor input)
         {
-            Tensor output = fPass(input);
-            output = Activation.Forwards(output);
-            return output;
+            return Activation.Forwards(fPass(input));
         }
 
         public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)

@@ -173,62 +173,57 @@ public   class Tensor
         if (a.IsScalar && b.IsScalar)
             return new Tensor(a.Value + b.Value);
         Tensor ret;
-        // we add scalar to non scalar
-        if (a.IsScalar || b.IsScalar)
+        // add two same shape tensors or one is a scalar (if both then we don't even get here)
+        Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape)||b.IsScalar||a.IsScalar);
+        // find the one with the bigger dimension. 
+        Tensor max = b;
+        Tensor min = a;
+        if (a.Dimension > b.Dimension)
         {
-            // we find who is the scalar
-            Tensor scalar = a;
-            Tensor nonScalar = b;
-            if (b.IsScalar)
-            {
-                scalar = b;
-                nonScalar = a;
-            }
-
-            ret = new Tensor(nonScalar);
-            // add the scalar to the non scalar
-            for (int i = 0; i < a.Length; i++)
-            {
-                ret[i] += scalar;
-            }
-
-            return ret;
+            max = a;
+            min = b;
         }
-        // add two same shape tensors
-        Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape));
-        ret = new Tensor(a);
-        for (int i = 0; i < ret.Shape[0]; i++)
+        ret = new Tensor(max);
+        for (int i = 0; i < ret.Length; i++)
         {
-            ret[i] += b[i];
+            ret[i] += min[i];
         }
         return ret;
     }
 
     public static Tensor operator *(Tensor a, Tensor b)
     {
-        //if a,b are scalars just do scalar multiplication
-        if ((a.IsScalar||(a.Dimension==1&&a.Length==1)) && (b.IsScalar||(b.Dimension==1&&b.Length==1)))
+        //if a,b are scalars , just return what we need to 
+        if (a.IsScalar && b.IsScalar)
             return new Tensor(a.Value * b.Value);
-        if (Math.Abs(a.Dimension - b.Dimension) > 1)
-            throw new Exception("The dimentions of a and b need to be equal or 1 less of each other!");
-        Tensor max;
-        Tensor min;
+        Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape)||b.IsScalar||a.IsScalar);
+        Tensor max = b;
+        Tensor min = a;
         if (a.Dimension > b.Dimension)
         {
             max = a;
             min = b;
         }
-        else
-        {
-            max = b;
-            min = a;
-        }
         Tensor ret = new Tensor(max);
-        // i is the max index, j is min.
-        for (int i = 0; i < min.Length; i++)
+        // multiplying the values
+        for (int i = 0; i < ret.Length; i++)
         {
-            ret[i] =  min[i];
+            ret[i] *=  min[i];
             
+        }
+        return ret;
+    }
+
+    public static Tensor operator /(Tensor a, Tensor b)
+    {
+        //if a,b are scalars , just return what we need to 
+        if (a.IsScalar && b.IsScalar)
+            return new Tensor(a.Value / b.Value);
+        Assert.IsTrue(Enumerable.SequenceEqual(a.Shape,b.Shape)||b.IsScalar);
+        Tensor ret = new Tensor(a);
+        for (int i = 0; i < a.Length; i++)
+        {
+            ret[i] /=  b[i];
         }
         return ret;
     }
@@ -249,6 +244,22 @@ public   class Tensor
     {
         return b * a;
     }
+    public static Tensor operator /(Tensor a, double b)
+    {
+        if (a.IsScalar)
+            return new Tensor(a.Value / b);
+        Tensor ret = new Tensor(a);
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i] /= b;
+        }
+        return ret;
+    }
+
+    public static Tensor operator /(double a, Tensor b)
+    {
+        return b / a;
+    }
     
     // square brackets operator
     public virtual Tensor this[int i]
@@ -266,10 +277,10 @@ public   class Tensor
 
     #region methods
 
-    public new virtual  string ToString()
+    public  virtual  string ToString(bool Addname=true)
     {
         string ret = "";
-        if (Name != "")
+        if (Name != ""&&Addname)
             ret += Name+": ";
         if (IsScalar)
             return ret + Value;
@@ -289,7 +300,7 @@ public   class Tensor
         {
             for (int i = 0; i < this.Length; i++)
             {
-                ret+=this[i].ToString();
+                ret+=this[i].ToString(false);
             }
         }
         return ret;
@@ -413,6 +424,19 @@ public   class Tensor
             {
                 ret[j][i].Value = temp[i][j].Value;
             }
+        }
+        return ret;
+    }
+
+
+    public virtual Tensor Pow(double pow)
+    {
+        if (IsScalar)
+            return new Tensor(Math.Pow(Value, pow));
+        Tensor ret = Clone();
+        for (int i = 0; i < Length; i++)
+        {
+            ret[i] = ret[i].Pow(pow);
         }
         return ret;
     }

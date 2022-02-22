@@ -131,7 +131,7 @@ namespace ML
                 for (int j = 0; j < wGrads.Width; j++)
                 {
                     wGrads[i][j] += loss[i] * NeuronActivations[j];
-                    aGrads[j] += loss[i] * Weights[i][j];// check multiplication works
+                    aGrads[j] += loss[i] * Weights[i][j];
                 }
                 //bgrads calculation
                 bGrads[i] = loss[i];

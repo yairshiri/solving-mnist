@@ -69,7 +69,7 @@ namespace ML
         public (Tensor[],Tensor[]) backwards(Tensor features,Tensor labels)
         {
             // getting a prediction from the network
-            Tensor pred = new Tensor( forwards(features));
+            Tensor pred =  forwards(features);
             // finding the loss
             Tensor loss = Loss.Func((pred, labels));
             Debug.Log(pred.ToString()+labels.ToString()+loss.ToString());
