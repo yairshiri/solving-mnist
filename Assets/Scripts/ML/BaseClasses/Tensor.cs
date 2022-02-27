@@ -127,27 +127,27 @@ public   class Tensor
 
 
     // copying constructor
-    public Tensor(Tensor a)
+    public Tensor(Tensor a,int copyVals = 1)
     {
         Name = a.Name;
         Shape = a.Shape;
         if (a.IsScalar)
         {
-            Value = a.Value;
+            Value = a.Value*copyVals;
             return;
         }
-            Data = new Tensor[Shape[0]];
+        Data = new Tensor[Shape[0]];
         if (Dimension==1)
         {
             for (int i = 0; i < Shape[0]; i++)
             {
-                Data[i] = new Tensor(a[i].Value,Name+"["+i+"]");
+                Data[i] = new Tensor(a[i].Value*copyVals,Name+"["+i+"]");
             }
             return;
         }
         for (int i = 0; i < Shape[0]; i++)
         {
-            Data[i] = new Tensor(a[i]);
+            Data[i] = new Tensor(a[i],copyVals);
         }
     }
     
@@ -311,16 +311,18 @@ public   class Tensor
             ret += Name+":\n";
         if (IsScalar)
             return ret + Value;
-        if (Dimension <= 1 && !IsScalar)
+        if (Dimension == 1||Height==1||Width==1)
         {
             ret += "[";
             for (int i = 0; i < this.Length; i++)
             {
-                ret+=this[i].Value+",";
+                ret += this[i].ToString(false)+",";
             }
 
             ret= ret.Remove(ret.Length-1,1);
-            ret += "]\n";
+            ret += "]";
+            if(Dimension>1)
+                ret += "\n";
         }
         else
         {
@@ -418,7 +420,7 @@ public   class Tensor
         if (a.Dimension < 2 && b.Dimension < 2)
             return a * b;
         Tensor ret;
-        Assert.AreEqual(a.Width,b.Height);
+        Assert.AreEqual(a.Shape.Last(),b.Height);
         // if b is a vector (its dimension is 1), then we want to return a vector. else, obviously, a matrix.
         if (b.Dimension == 1)
         {
@@ -426,7 +428,7 @@ public   class Tensor
         }
         else
         {
-            ret= new Tensor(new[] { a.Height, b.Width },name:a.Name + " * " + b.Name);
+            ret= new Tensor(a.Shape.Take(a.Shape.Length - 1).Concat(b.Shape.Skip(1)).ToArray(),name:a.Name + " * " + b.Name);
         }
         for (int i = 0; i < ret.Height; i++)
         {

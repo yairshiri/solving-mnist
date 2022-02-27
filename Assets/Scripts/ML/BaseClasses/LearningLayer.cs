@@ -101,8 +101,6 @@ namespace ML
                 mean + stdDev * randStdNormal; 
             return randNormal;
         }
-
-        
         #endregion Methods
 
     }

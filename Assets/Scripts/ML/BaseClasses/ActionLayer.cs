@@ -8,7 +8,7 @@ namespace ML
     {
         #region Fields
 
-        private Function<Tensor, Tensor> action;
+        protected Function<Tensor, Tensor> action;
         private bool useElementWise;
 
         #endregion Fields
@@ -38,7 +38,7 @@ namespace ML
         public override Tensor Forwards(Tensor input)
         {
             // saving the input to the layer. used in the backprop
-            NeuronActivations = input.Clone();
+            NeuronActivations = input;
             // copying the input Tensor and applying the function to each element
             Tensor ret;
             if (useElementWise)
@@ -50,10 +50,10 @@ namespace ML
 
         public override (Tensor, Tensor, Tensor) Backwards(Tensor loss)
         {
-            return (bPass(loss), null, null);
+            return (bPass(loss), new Tensor(0.0), new Tensor(0.0));
         }
 
-        public  Tensor bPass(Tensor loss)
+        public virtual Tensor bPass(Tensor loss)
         {
             Tensor delta;
             if (useElementWise)
@@ -61,7 +61,7 @@ namespace ML
             else
                 delta = action.FunctionDeriv(NeuronActivations);
             // need to multiply loss by result
-            return Tensor.MatrixMult(delta, loss);
+            return delta*loss;
         }
 
         public override void ApplyGradients(Tensor wGrads, Tensor bGrads)
@@ -177,10 +177,15 @@ namespace ML
                 }
             }
 
-            return ret;// check for matrix multiplication working
+            return ret;
         }
 
+        public override Tensor bPass(Tensor loss)
+        {
+            Tensor deltas = action.FunctionDeriv(NeuronActivations);;
 
+            return Tensor.MatrixMult(deltas,loss);
+        }
 
         #endregion
 

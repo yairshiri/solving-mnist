@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Threading;
 namespace ML
 {
     public class SGD:Optimizer
@@ -39,16 +39,18 @@ namespace ML
             // getting the gradiants
             for (int i = 0; i < batchSize; i++)
             {
-                (weightGrads[i], biasGrads[i]) = GetGrad(dataBatch[i],labelsBatch[i]);
+                (weightGrads[i], biasGrads[i]) = GetGrad(dataBatch[i], labelsBatch[i]);
             }
+            
+            
             // computing the final grad:
             Tensor[] finalWeightGrad = new  Tensor[weightGrads[0].Length];
             Tensor[] finalBiasGrad = new  Tensor[biasGrads[0].Length];
             for (int i = 0; i < finalWeightGrad.Length; i++)
             {
                 // adding the weight and bias gradiants
-                finalWeightGrad[i] = new Tensor(weightGrads[0][i].Shape);
-                finalBiasGrad[i] = new Tensor(biasGrads[0][i].Shape);
+                finalWeightGrad[i] = new Tensor(weightGrads[0][i],0);
+                finalBiasGrad[i] = new Tensor(biasGrads[0][i],0);
                 for (int j = 0; j < batchSize; j++)
                 {
                     finalWeightGrad[i] += weightGrads[j][i];
@@ -58,6 +60,6 @@ namespace ML
             // returning the final gradiants
             return (finalWeightGrad, finalBiasGrad);
         }
-
+        
     }
 }

@@ -16,7 +16,7 @@ namespace ML
 
         public override void Init(int[] shape)
         {
-            base.Init(inputShape);
+            base.Init(shape);
             outputShape = new[] { (shape[0]-size)/stride+1, (shape[1] - size)/stride+1,shape[2]};
         }
 
@@ -39,8 +39,9 @@ namespace ML
                             for (int m = 0; m < size; m++)
                             {
                                 if (x[i * stride + l][j * stride + m][k].Value >= max)
-                                {
+                                {   
                                     max = x[i * stride + l][j * stride + m][k].Value;
+                                    ret[i][j][k].Value = max;
                                     // saving for backprop!
                                     deltaVals[i * stride + l][j * stride + m][k].Value = 1;
                                 }
@@ -56,6 +57,29 @@ namespace ML
         public Tensor maxPoolingDeriv(Tensor x)
         {
             return deltaVals;
+        }
+
+        public override Tensor bPass(Tensor loss)
+        {
+            Tensor ret = new Tensor(inputShape);
+            for (int i = 0; i < outputShape[0]; i++)
+            {
+                for (int j = 0; j < outputShape[1]; j++)
+                {
+                    for (int k = 0; k < outputShape[2]; k++)
+                    {
+                        for (int l = 0; l < size; l++)
+                        {
+                            for (int m = 0; m < size; m++)
+                            {
+                                ret[i * stride + l][j * stride + m][k] +=
+                                    deltaVals[i * stride + l][j * stride + m][k] * loss[i][j][k];
+                            }
+                        }
+                    }
+                }
+            }
+            return ret;
         }
     }
 }

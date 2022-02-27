@@ -32,22 +32,22 @@ namespace ML
                 Sw = new Tensor[finalWeightGrad.Length];
                 for (int i = 0; i < finalWeightGrad.Length; i++)
                 {
-                    Sw[i] = new Tensor(finalWeightGrad[i].Shape);
+                    Sw[i] = new Tensor(finalWeightGrad[i],0);
                 }
                 Sb = new Tensor[finalBiasGrad.Length];
                 for (int i = 0; i < finalBiasGrad.Length; i++)
                 {
-                    Sb[i] = new Tensor(finalBiasGrad[i].Shape);
+                    Sb[i] = new Tensor(finalBiasGrad[i],0);
                 }
                 Vw = new Tensor[finalWeightGrad.Length];
                 for (int i = 0; i < finalWeightGrad.Length; i++)
                 {
-                    Vw[i] = new Tensor(finalWeightGrad[i].Shape);
+                    Vw[i] = new Tensor(finalWeightGrad[i],0);
                 }
                 Vb = new Tensor[finalBiasGrad.Length];
                 for (int i = 0; i < finalBiasGrad.Length; i++)
                 {
-                    Vb[i] = new Tensor(finalBiasGrad[i].Shape);
+                    Vb[i] = new Tensor(finalBiasGrad[i],0);
                 }
                 inited = true;
             }

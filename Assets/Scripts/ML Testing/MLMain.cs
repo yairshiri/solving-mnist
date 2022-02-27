@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ML;
 using UnityEngine;
 using Network = ML.Network;
@@ -8,10 +10,11 @@ using Random = System.Random;
 
 public class MLMain : MonoBehaviour
 {
-    private static int sampleSize = 100000;
-    private static int batchSize = 250;
+    private static int sampleSize = 10000;
+    private static int batchSize = 75;
 
     private float noise = 0.00001f;
+    
     
     
     // counts loops through update
@@ -41,30 +44,50 @@ public class MLMain : MonoBehaviour
     void Start()
     {
         // generating the data
-        Debug.Log("Generating data...");
-        
-        for (int i = 0; i < sampleSize; i++)
+        // Debug.Log("Generating data...");
+        //
+        // for (int i = 0; i < sampleSize; i++)
+        // {
+        //     x = rand.NextDouble() * 10;
+        //     features[i] = new Tensor(1, x,"Data "+i);
+        //     // features[i][1].Value = rand.NextDouble() * 10;
+        //     labels[i] = new Tensor(1,Math.Pow(x,2),  "Label " + i);
+        //     // labels[i][0].Value = 0;
+        //     // if (x > 5)
+        //     //     labels[i][0].Value = 1;
+        //     // labels[i][1].Value = 1 - labels[i][0].Value;
+        // }
+        string[] lines = File.ReadAllLines(@"D:\Users\owner\Downloads\archive\mnist_train.csv").Skip(1).ToArray();
+        int length = Math.Min(lines.Length, features.Length);
+        features = new Tensor[length];
+        labels = new Tensor[length];
+        // reading the first line
+        for (int i = 0; i < features.Length; i++)
         {
-            x = rand.NextDouble() * 10;
-            features[i] = new Tensor(1, x,"Data "+i);
-            // features[i][1].Value = rand.NextDouble() * 10;
-            labels[i] = new Tensor(1,Math.Pow(x,2),  "Label " + i);
-            // labels[i][0].Value = 0;
-            // if (x > 5)
-            //     labels[i][0].Value = 1;
-            // labels[i][1].Value = 1 - labels[i][0].Value;
+            string[] line = lines[i].Split(',');
+            // creating a one-hot encoding as the labels
+            labels[i] = new Tensor(10, defaultValue:0.0,"Labels " + i);
+            labels[i][int.Parse(line[0])].Value = 1;
+            features[i] = new Tensor(new[] { 28, 28, 1 }, name: "Features " + i);
+            for (int j = 0; j < 28; j++)
+            {
+                for (int k = 0; k < 28; k++)
+                {
+                    features[i][j][k][0].Value = double.Parse(line[1 + 28 * j + k])/255;
+                }
+            }
         }
+        
 
-        Debug.Log("Done!");
         Layer[] layers=
         {
-            new DenseLayer(4,"selu","d3"),
-            new DenseLayer(4,"selu","d3"),
-            new DenseLayer(4,"selu","d3"),
-            new DenseLayer(labels[0].Length,"linear","d4"),
+            new Flatten(0,"flatten 1"),
+            new DenseLayer(16,"relu","d3"),
+            new DenseLayer(16,"relu","d3"),
+            new DenseLayer(labels[0].Length,"linear","d3"),
         };
         Optimizer optimizer = new Adam(batchSize);
-        net = new Network(layers,lr,features[0].Length,mse,optimizer);
+        net = new Network(layers,lr,features[0].Shape,SoftMaxCE,optimizer);
     }
     #region activations
     
